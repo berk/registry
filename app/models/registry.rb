@@ -64,7 +64,7 @@ class Registry < ActiveRecord::Base
 
   def self.root
     node = find(:first, :conditions => "parent_id IS NULL", :order => "key asc")
-    node = Registry.create(:key => ROOT_KEY, :value => ROOT_LABEL, :folder => true) unless node
+    node = Registry.create(:key => ROOT_KEY, :label => ROOT_LABEL, :folder => true) unless node
     node
   end
   
