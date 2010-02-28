@@ -42,7 +42,7 @@ class Admin::RegistryController < AdminController
       end
     else
       fld = Registry.find_by_id(params[:folder_id]) unless params[:folder_id].blank?
-      fld = Registry.new(:label => "New Folder") unless fld
+      fld = Registry.new(:key => "", :label => "") unless fld
     end
  
     results[:folders] << fld.to_folder_hash
