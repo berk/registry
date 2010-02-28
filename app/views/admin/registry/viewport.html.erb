@@ -1,0 +1,580 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Registry Explorer</title>
+    
+    <script type="text/javascript" src="/javascripts/ext-base.js"></script>
+    <script type="text/javascript" src="/javascripts/ext-all.js"></script>
+    <link rel="stylesheet" type="text/css" href="/resources/css/ext-all.css" />
+</head>
+
+<body>
+    <script type="text/javascript">
+
+    Ext.onReady(function(){
+       Ext.QuickTips.init();
+
+       var gridDataStore = new Ext.data.Store({
+            id: 'properties',
+            restful: true,
+            proxy: new Ext.data.HttpProxy({
+               url: '/admin/registry/properties?node=<%=@root.id%>',
+            }),
+            reader: new Ext.data.JsonReader({
+                idProperty: 'id',
+                root: 'properties',
+                totalProperty: 'total',
+                fields: [{name: 'id', mapping: 'id'},
+                         {name: 'value', mapping: 'value'},
+                         {name: 'description', mapping: 'description'},
+                         {name: 'full_key', mapping: 'full_key'},
+                         {name: 'key', mapping: 'key'}]
+            }),
+            writer: new Ext.data.JsonWriter({encode: false})
+        });
+        
+        var gridToolbar = new Ext.Toolbar({
+            items:[{
+              text: '+ Add',
+              handler: addProperty
+            }, '-', {
+              id: 'edit_property_button',
+              text: 'Edit',
+              disabled: true,
+              handler: editProperty
+            }, '-', {
+              id: 'delete_property_button',
+              disabled: true,
+              text: '- Delete',
+              handler: function() {
+                 var item = grid.getSelectionModel().getSelected();
+                 if (!item) {
+                    return false;
+                 }
+                 grid.store.remove(item);
+                 gridToolbar.items.get("edit_property_button").disable();
+                 gridToolbar.items.get("delete_property_button").disable();
+              }
+            }, '->', '-', {
+              text: 'Reset Defaults',
+              handler: function() {
+                location = "/admin/registry/reset_defaults"
+              }
+            }]
+        });
+        
+        /* BEGIN GRID IMPLEMENTATION */
+        var grid = new Ext.grid.EditorGridPanel({
+            store: gridDataStore,
+            cm: new Ext.grid.ColumnModel([{
+                 header: 'Key',
+                 dataIndex: 'key',
+                 sortable: true,
+              },{
+                 header: 'Value',
+                 dataIndex: 'value',
+                 sortable: true,
+                 editor: new Ext.form.TextField({
+                     allowBlank: false
+                 })
+            }]),
+            sm: new Ext.grid.RowSelectionModel({singleSelect: true}),
+            autoExpandColumn: true,
+            clicksToEdit: 2,
+            title: 'Properties (<span style="color:green"><%=Rails.env%></span>)',
+            collapsible: false,
+            tbar: gridToolbar,
+            region: 'center',
+            margins: '2 2 2 0',
+            viewConfig: {
+              forceFit: true
+            },
+            listeners: {
+              rowclick: function(grid, rowIndex, e) {
+                gridToolbar.items.get("edit_property_button").enable();
+                gridToolbar.items.get("delete_property_button").enable();
+              }, 
+              celldblclick: function(grid, rowIndex, columnIndex, e) {
+                if (columnIndex == 0) {
+                  editProperty();
+                }
+                return true;
+              } 
+            }
+        });
+        
+        gridDataStore.load();
+        /* END GRID IMPLEMENTATION */
+        
+        
+        /* BEGIN TREE IMPLEMENTATION */
+        var lastEditedNode = null;
+        
+        // Tree toolbar
+        var treeToolbar = new Ext.Toolbar({
+            items:[{
+                text: '+ Add',
+                handler: addFolder,
+            }, '-', {
+                id: 'edit_folder_button',
+                text: 'Edit',
+                handler: editFolder,
+                disabled: true
+            }, '-', {
+                id: 'delete_folder_button',
+                text: '- Delete',
+                disabled: true,
+                handler: function(){
+                    lastEditedNode = tree.getSelectionModel().getSelectedNode();
+                    if (!lastEditedNode)
+                      return false;
+                      
+                    var conn = new Ext.data.Connection();
+                    conn.request({
+                        url: '/admin/registry/delete_folder',
+                        method: 'POST',
+                        params: { "node": lastEditedNode.attributes.id},
+                        success: function(responseObject) {
+                            lastEditedNode.destroy();
+                            lastEditedNode = null;
+                        },
+                        failure: function() {
+                            Ext.Msg.alert('Status', 'Cannot delete this folder');
+                        }
+                    });
+
+                    treeToolbar.items.get("edit_folder_button").disable();
+                    treeToolbar.items.get("delete_folder_button").disable();
+                }
+            }, '->', {
+                text: 'Import',
+                handler: function() {
+                  location = "/admin/registry/import";
+                }
+            }, '-', {
+                text: 'Export',
+                handler: function() {
+                  location = "/admin/registry/export";
+                }
+            }, '-', {
+                text: 'Reload',
+                handler: function(){
+                  location.reload();
+                }
+            }]
+        });
+        
+        var tree = new Ext.tree.TreePanel({
+             animate:true,
+             enableDD:false,
+             containerScroll: true,
+             rootVisible:true,
+             dataUrl: '/admin/registry/folders',
+             root: {
+                nodeType: 'async',
+                text: '<%=@root.value%>',
+                draggable: false,
+                id: '<%=@root.id%>'
+             },
+
+             // layout
+             region:'west',
+             width:300,
+             minSize: 100,
+             maxSize: 550,
+             split:true,
+             
+             // panel
+             title:'Registry Tree (<span style="color:green"><%=Rails.env%></span>)',
+             autoScroll:true,
+             tbar: treeToolbar,
+             margins: '2 0 2 2',
+             
+             listeners: {
+              click: function(n) {
+                  selectFolder(n);
+              },
+              dblclick: function(n) {
+                  editFolder();
+                  return false;
+              }
+            }
+        });
+
+        tree.getRootNode().expand();
+        
+        /* END TREE IMPLEMENTATION */
+       
+        var viewport = new Ext.Viewport({
+            layout: 'border',
+            defaults: {
+              collapsible: false,
+              split: true,
+              bodyStyle: 'padding:0px'
+            },
+            items: [tree, 
+              new Ext.Panel({
+                layout: 'border',
+                region: 'center',
+                bodyBorder: false,
+                border: false,
+                defaults: {
+                  collapsible: false,
+                  split: false,
+                  bodyStyle: 'padding:0px; font-size:8px;'
+                },
+                items: [grid, {
+                  id: 'infoPanel',
+                  region: 'south',
+                  height: 50,
+                  split: false,
+                  margins: '2 2 2 0',
+                  bodyStyle: 'padding:3px'
+                }]
+              })]
+        });
+        
+        /* Begin Bottom Panel Management */
+       
+        var infoTplMarkup = ['<span style="font-size:12px"><b>Access Code</b>: result = Registry.value_for("<b>{full_key}</b>")<br></style>',
+                             '<span style="font-size:12px"><b>Description</b>: {description}</style>'];
+        var infoTpl = new Ext.Template(infoTplMarkup);
+       
+        grid.getSelectionModel().on('rowselect', function(sm, rowIdx, r) {
+            var infoPanel = Ext.getCmp('infoPanel');
+            infoTpl.overwrite(infoPanel.body, r.data);
+        });
+
+        /* End Bottom Panel Management */
+          
+          
+        /* Begin Tree Form */
+        Ext.form.Field.prototype.msgTarget = 'side';
+    
+        var folderFormPanel = new Ext.FormPanel({
+            frame: true,
+            title:'',
+            labelAlign: 'right',
+            labelWidth: 80,
+            width: 340,
+            waitMsgTarget: true,
+            id: 'folders',
+            reader: new Ext.data.JsonReader({
+                root: 'folders',
+                totalProperty: 'total',
+                fields: [
+                         {name: 'folder[id]', mapping: 'id'},
+                         {name: 'folder[key]', mapping: 'key'},
+                         {name: 'folder[value]', mapping: 'value'}
+                        ]
+            }),
+            
+            items: [
+                new Ext.form.FieldSet({
+                    title: 'Basic',
+                    autoHeight: true,
+                    defaultType: 'textfield',
+                    items: [new Ext.form.Hidden({
+                                name: 'folder[id]',
+                                id: "folder_id"                                
+                            }), {
+                                fieldLabel: 'Key',
+                                name: 'folder[key]',
+                                width:240,
+                                allowBlank: false, 
+                            }, {
+                                fieldLabel: 'Label',
+                                name: 'folder[value]',
+                                width:240,
+                            }
+                    ]
+                }) 
+            ]
+        });
+        
+        var folderWindow = new Ext.Window({
+            layout:'fit',
+            title: 'Folder Details',
+            width: 400,
+            height: 200,
+            modal:true,
+            closeAction:'hide', 
+            plain: true,
+
+            items:[folderFormPanel],
+      
+            buttons: [{
+                text: 'Cancel',
+                handler: function(){
+                  if (tempFolder) {
+                    var parent = tempFolder.parentNode;
+                    parent.removeChild(tempFolder, false);
+                    tempFolder.destroy();
+                    parent.select();
+                    tempFolder = null;
+                  }
+                  folderWindow.hide();
+                }
+            },{
+                text:'Submit',
+                disabled:false,
+                handler: function(){
+                  saveFolder();
+                }
+            }]
+        });    
+
+        var lastEditedFolder = null;
+        var tempFolder = null;
+        
+        function addFolder() {
+          lastEditedFolder = null;
+          
+           var parent = tree.getSelectionModel().getSelectedNode();
+           if (!parent)
+              parent = tree.getRootNode();
+
+           if (!parent.expanded) {
+             parent.expand();
+           } 
+
+           setTimeout(function(){
+             lastEditedFolder = parent.appendChild(new Ext.tree.AsyncTreeNode({text:'New Folder', id:''}));
+             tree.getSelectionModel().select(lastEditedFolder);
+             tempFolder = lastEditedFolder; 
+           }, 100);
+
+          folderWindow.show(this);
+          folderFormPanel.getForm().load({
+              url:'/admin/registry/folder', 
+              method:'GET', 
+              waitMsg:'Loading...'
+          });
+        }
+
+        function editFolder() {
+          if (tree.getSelectionModel().getSelectedNode() == tree.getRootNode()) {
+              return false;
+          }
+              
+          lastEditedFolder = tree.getSelectionModel().getSelectedNode();
+          
+          folderWindow.show(this);
+          folderFormPanel.getForm().load({
+              url:'/admin/registry/folder', 
+              params: {folder_id: lastEditedFolder.attributes.id}, 
+              method:'GET', 
+              waitMsg:'Loading...'
+          });
+        }
+        
+        function saveFolder() {
+          var parent = lastEditedFolder.parentNode;
+          tempFolder = null;
+          
+          folderFormPanel.getForm().submit({
+                url:'/admin/registry/folder',
+                params: {folder_id: lastEditedFolder.attributes.id, parent_id: parent.attributes.id}, 
+                method:'POST', 
+                waitMsg:'Saving folder info...'
+          });
+        }
+        
+        function selectFolder(node) {
+          if (node == null)
+            return;
+          
+          node.select();
+          // node.expand();  
+          
+          gridDataStore.proxy.setUrl('/admin/registry/properties?node=' + node.attributes.id, true);
+          gridDataStore.reload();
+          gridToolbar.items.get("edit_property_button").disable();
+          gridToolbar.items.get("delete_property_button").disable();
+
+          if (node != tree.getRootNode()) {
+            treeToolbar.items.get("edit_folder_button").enable();
+            treeToolbar.items.get("delete_folder_button").enable();
+          } else {
+            treeToolbar.items.get("edit_folder_button").disable();
+            treeToolbar.items.get("delete_folder_button").disable();
+          }
+        }
+        
+        folderFormPanel.on({
+            actioncomplete: function(form, action){
+                if(action.type == 'submit'){
+                   folderWindow.hide();
+                   var parent = lastEditedFolder.parentNode;
+                   var folderId = action.result.folders[0]["id"];
+                   // alert(folderId);
+                   
+                   parent.reload();
+                   lastEditedFolder = null;
+                   
+                   setTimeout(function() {
+                     selectFolder(parent.findChild("id", "" + folderId));
+                   }, 200);                   
+                }
+            }
+        });
+
+        var propertyFormPanel = new Ext.FormPanel({
+            frame: true,
+            title:'',
+            labelAlign: 'right',
+            labelWidth: 80,
+            width: 340,
+            waitMsgTarget: true,
+            id: 'properties',
+            reader: new Ext.data.JsonReader({
+                idProperty: 'id',
+                root: 'properties',
+                totalProperty: 'total',
+                fields: [{name: 'property[id]', mapping: 'id'},
+                         {name: 'property[key]', mapping: 'key'},
+                         {name: 'property[value]', mapping: 'value'},
+                         {name: 'property[description]', mapping: 'description'},
+                         {name: 'property[default_qa]', mapping: 'default_qa'},
+                         {name: 'property[default_test]', mapping: 'default_test'},
+                         {name: 'property[default_staging]', mapping: 'default_staging'},
+                         {name: 'property[default_production]', mapping: 'default_production'},
+                         {name: 'property[default_development]', mapping: 'default_development'}
+                        ]
+            }),
+            
+            items: [
+                new Ext.form.FieldSet({
+                    title: 'Basic',
+                    autoHeight: true,
+                    defaultType: 'textfield',
+                    id: 'property',
+                    items: [{
+                                fieldLabel: 'Key',
+                                name: 'property[key]',
+                                width:240,
+                                allowBlank: false
+                            }, {
+                                fieldLabel: 'Value',
+                                name: 'property[value]',
+                                width:240,
+                                allowBlank: false
+                            }, {
+                                fieldLabel: 'Description',
+                                name: 'property[description]',
+                                width:240
+                            }
+                    ]
+                }), 
+                new Ext.form.FieldSet({
+                    title: 'Default Environment Values',
+                    autoHeight: true,
+                    defaultType: 'textfield',
+                    items: [{
+                                fieldLabel: 'QA',
+                                name: 'property[default_qa]',
+                                width:240
+                            }, {
+                                fieldLabel: 'Test',
+                                name: 'property[default_test]',
+                                width:240
+                            }, {
+                                fieldLabel: 'Staging',
+                                name: 'property[default_staging]',
+                                width:240
+                            }, {
+                                fieldLabel: 'Production',
+                                name: 'property[default_production]',
+                                width:240
+                            }, {
+                                fieldLabel: 'Development',
+                                name: 'property[default_development]',
+                                width:240
+                            }
+                    ]
+                })
+            ]
+        });
+
+        var propertyWindow = new Ext.Window({
+            layout:'fit',
+            title: 'Property Details',
+            width: 400,
+            height: 370,
+            modal:true,
+            closeAction:'hide',
+            plain: true,
+
+            items:[propertyFormPanel],
+      
+            buttons: [{
+                text: 'Cancel',
+                handler: function(){
+                  propertyWindow.hide();
+                }
+            },{
+                text:'Submit',
+                disabled:false,
+                handler: function(){
+                  saveProperty();
+                }
+            }]
+        });
+
+        var lastEditedProperty = null;
+        
+        function addProperty(){
+          grid.stopEditing();
+          lastEditedProperty = null;
+          propertyWindow.show(this);
+          propertyFormPanel.getForm().load({
+              url:'/admin/registry/property', 
+              method:'GET', 
+              waitMsg:'Loading...'
+          });
+        }
+
+        function editProperty() {
+          lastEditedProperty = grid.getSelectionModel().getSelected();
+          
+          propertyWindow.show(this);
+          propertyFormPanel.getForm().load({
+              url:'/admin/registry/property', 
+              params: {prop_id: lastEditedProperty.id}, 
+              method:'GET', 
+              waitMsg:'Loading...'
+          });
+        }
+        
+        function saveProperty() {
+          var node = tree.getSelectionModel().getSelectedNode();
+          if (!node)
+            node = tree.getRootNode();
+            
+          var prop_id = ((lastEditedProperty!=null) ? lastEditedProperty.id : "");
+
+          propertyFormPanel.getForm().submit({
+                url:'/admin/registry/property',
+                params: {prop_id: prop_id, parent_id: node.attributes.id}, 
+                method:'POST', 
+                waitMsg:'Saving property info...'
+          });
+                
+        }
+        
+        propertyFormPanel.on({
+            actioncomplete: function(form, action){
+                if(action.type == 'submit'){
+                   lastEditedProperty = null;
+                   propertyWindow.hide(); 
+                   gridDataStore.reload();                   
+                }
+            }
+        });
+
+    });
+    </script>
+    
+</body>
+</html>
