@@ -17,21 +17,27 @@ class Registry < ActiveRecord::Base
     self.class.curr_env
   end
 
-  def self.export
-    hash = {}
+  def self.export!(file_path = "config/registry.yml")
+    yaml_data = {}
     ENVIRONMENTS.each do |env|
-      hash[env] = {}      
-      Registry.root.export(hash[env], env)
+      yaml_data[env] = {}      
+      Registry.root.export(yaml_data[env], env)
     end
-    hash
+
+    File.open(file_path, 'w' ) do |out|
+       YAML.dump( yaml_data, out )
+    end
+    
+    yaml_data
   end
 
-  def self.import(hash)
+  def self.import!(file_path = "config/registry.yml")
+    yaml_data = YAML.load_file( file_path )
     Registry.delete_all
     root = Registry.create(:key => ROOT_KEY, :label => ROOT_LABEL, :folder => true)
     ENVIRONMENTS.each do |env|
-      next unless hash[env]
-      root.import(hash[env], env)
+      next unless yaml_data[env]
+      root.import(yaml_data[env], env)
     end
   end
   

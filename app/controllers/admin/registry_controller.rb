@@ -97,16 +97,12 @@ class Admin::RegistryController < AdminController
   end
   
   def export
-    yaml_data = Registry.export
-    File.open("config/registry.yml", 'w' ) do |out|
-       YAML.dump( yaml_data, out )
-    end
+    Registry.export!("config/registry.yml")
     send_file("config/registry.yml", :type=>"text/yml", :filename => "registry.yml")    
   end
 
   def import
-    yaml_data = YAML.load_file( "config/registry.yml" )
-    Registry.import(yaml_data)
+    Registry.import!("config/registry.yml")
     redirect_to :action => :viewport
   end
   
