@@ -19,29 +19,17 @@ class Admin::RegistryController < AdminController
   end
   
   def folders
-    pp request.request_method
-    pp params
-    
     folders = []
-    
     node = Registry.root if params[:node] == 'root'
     node = Registry.find_by_id(params[:node]) unless node
-    
     node.folders.each do |child|
       folders << child.to_folder_hash
     end
-  
-    pp folders.to_json
-    
     render :text => folders.to_json
   end
   
   def folder
-    pp request.request_method
-    pp params
-  
     results = {:success => true, :total => 1, :folders => []}
-    
     if request.post?
       if params[:folder_id].blank? or params[:folder_id].index('xnode')
         parent = Registry.find_by_id(params[:parent_id])
@@ -58,15 +46,10 @@ class Admin::RegistryController < AdminController
     end
  
     results[:folders] << fld.to_property_hash
-    pp results.to_json
-    
     render :text => results.to_json
   end  
   
   def property
-    pp request.request_method
-    pp params
-  
     results = {:success => true, :total => 1, :properties => []}
     
     if request.post?
@@ -85,16 +68,10 @@ class Admin::RegistryController < AdminController
     end
  
     results[:properties] << prop.to_property_hash
-    
-    pp results.to_json
-    
     render :text => results.to_json
   end
   
   def properties
-#    pp request.request_method
-#    pp params
-    
     results = {:success => true, :total => 0, :properties => []}
   
     if request.get?
@@ -124,19 +101,14 @@ class Admin::RegistryController < AdminController
       node.destroy if node
     end
     
-    # pp results
-    
     render :text => results.to_json
   end
   
   def export
     yaml_data = Registry.export
-    pp yaml_data
-
     File.open("config/registry.yml", 'w' ) do |out|
        YAML.dump( yaml_data, out )
     end
-    
     send_file("config/registry.yml", :type=>"text/yml", :filename => "registry.yml")    
   end
 

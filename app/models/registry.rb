@@ -21,10 +21,6 @@ class Registry < ActiveRecord::Base
   def self.import(hash)
     Registry.delete_all
     root = Registry.create(:key => ROOT_KEY, :value => ROOT_LABEL, :folder => true)
-    
-#    env = "development"
-#    root.import(hash[env], env)
-    
     ENVIRONMENTS.each do |env|
       next unless hash[env]
       root.import(hash[env], env)
