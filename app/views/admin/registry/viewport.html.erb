@@ -27,6 +27,7 @@
                 totalProperty: 'total',
                 fields: [{name: 'id', mapping: 'id'},
                          {name: 'value', mapping: 'value'},
+                         {name: 'label', mapping: 'label'},
                          {name: 'description', mapping: 'description'},
                          {name: 'full_key', mapping: 'full_key'},
                          {name: 'key', mapping: 'key'}]
@@ -56,11 +57,6 @@
                  gridToolbar.items.get("edit_property_button").disable();
                  gridToolbar.items.get("delete_property_button").disable();
               }
-            }, '->', '-', {
-              text: 'Reset Defaults',
-              handler: function() {
-                location = "/admin/registry/reset_defaults"
-              }
             }]
         });
         
@@ -68,8 +64,8 @@
         var grid = new Ext.grid.EditorGridPanel({
             store: gridDataStore,
             cm: new Ext.grid.ColumnModel([{
-                 header: 'Key',
-                 dataIndex: 'key',
+                 header: 'Label',
+                 dataIndex: 'label',
                  sortable: true,
               },{
                  header: 'Value',
@@ -173,9 +169,9 @@
              dataUrl: '/admin/registry/folders',
              root: {
                 nodeType: 'async',
-                text: '<%=@root.value%>',
+                text: '<%=@root.label%>',
                 draggable: false,
-                id: '<%=@root.id%>'
+                id: '<%=@root.key%>'
              },
 
              // layout
@@ -266,7 +262,7 @@
                 fields: [
                          {name: 'folder[id]', mapping: 'id'},
                          {name: 'folder[key]', mapping: 'key'},
-                         {name: 'folder[value]', mapping: 'value'}
+                         {name: 'folder[label]', mapping: 'label'}
                         ]
             }),
             
@@ -285,7 +281,7 @@
                                 allowBlank: false, 
                             }, {
                                 fieldLabel: 'Label',
-                                name: 'folder[value]',
+                                name: 'folder[label]',
                                 width:240,
                             }
                     ]
@@ -434,13 +430,13 @@
                 totalProperty: 'total',
                 fields: [{name: 'property[id]', mapping: 'id'},
                          {name: 'property[key]', mapping: 'key'},
-                         {name: 'property[value]', mapping: 'value'},
+                         {name: 'property[label]', mapping: 'label'},
                          {name: 'property[description]', mapping: 'description'},
-                         {name: 'property[default_qa]', mapping: 'default_qa'},
-                         {name: 'property[default_test]', mapping: 'default_test'},
-                         {name: 'property[default_staging]', mapping: 'default_staging'},
-                         {name: 'property[default_production]', mapping: 'default_production'},
-                         {name: 'property[default_development]', mapping: 'default_development'}
+                         {name: 'property[qa_value]', mapping: 'qa_value'},
+                         {name: 'property[test_value]', mapping: 'test_value'},
+                         {name: 'property[staging_value]', mapping: 'staging_value'},
+                         {name: 'property[production_value]', mapping: 'production_value'},
+                         {name: 'property[development_value]', mapping: 'development_value'}
                         ]
             }),
             
@@ -456,10 +452,9 @@
                                 width:240,
                                 allowBlank: false
                             }, {
-                                fieldLabel: 'Value',
-                                name: 'property[value]',
-                                width:240,
-                                allowBlank: false
+                                fieldLabel: 'Label',
+                                name: 'property[label]',
+                                width:240
                             }, {
                                 fieldLabel: 'Description',
                                 name: 'property[description]',
@@ -468,28 +463,28 @@
                     ]
                 }), 
                 new Ext.form.FieldSet({
-                    title: 'Default Environment Values',
+                    title: 'Environment Values',
                     autoHeight: true,
                     defaultType: 'textfield',
                     items: [{
                                 fieldLabel: 'QA',
-                                name: 'property[default_qa]',
+                                name: 'property[qa_value]',
                                 width:240
                             }, {
                                 fieldLabel: 'Test',
-                                name: 'property[default_test]',
+                                name: 'property[test_value]',
                                 width:240
                             }, {
                                 fieldLabel: 'Staging',
-                                name: 'property[default_staging]',
+                                name: 'property[staging_value]',
                                 width:240
                             }, {
                                 fieldLabel: 'Production',
-                                name: 'property[default_production]',
+                                name: 'property[production_value]',
                                 width:240
                             }, {
                                 fieldLabel: 'Development',
-                                name: 'property[default_development]',
+                                name: 'property[development_value]',
                                 width:240
                             }
                     ]

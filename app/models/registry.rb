@@ -9,6 +9,14 @@ class Registry < ActiveRecord::Base
   ROOT_KEY = 'root'
   ROOT_LABEL = "Configuration Schema"
 
+  def self.curr_env
+    Rails.env
+  end
+  
+  def curr_env
+    self.class.curr_env
+  end
+
   def self.export
     hash = {}
     ENVIRONMENTS.each do |env|
@@ -20,7 +28,7 @@ class Registry < ActiveRecord::Base
 
   def self.import(hash)
     Registry.delete_all
-    root = Registry.create(:key => ROOT_KEY, :value => ROOT_LABEL, :folder => true)
+    root = Registry.create(:key => ROOT_KEY, :label => ROOT_LABEL, :folder => true)
     ENVIRONMENTS.each do |env|
       next unless hash[env]
       root.import(hash[env], env)
@@ -34,16 +42,16 @@ class Registry < ActiveRecord::Base
   def self.value_for(key, default = nil)
     reg = Registry.find_by_key(key)
     return default unless reg
-    reg.value  
+    reg.value_for(curr_env)  
   end
   
   def self.populate_defaults
     Registry.delete_all
-    root = Registry.create(:key => ROOT_KEY, :value => ROOT_LABEL, :folder => true)
+    root = Registry.create(:key => ROOT_KEY, :label => ROOT_LABEL, :folder => true)
     1.upto(5) do |i|
-      folder = Registry.create(:key => "folder#{i}", :value => "Folder #{i}", :parent => root, :folder => true)
+      folder = Registry.create(:key => "folder#{i}", :label => "Folder #{i}", :parent => root, :folder => true)
       1.upto(10) do |j|
-        property = Registry.create(:key => "property#{j}", :value => "Value #{j}", :description => "Very important property", :parent => folder, :folder => false)
+        property = Registry.create(:key => "property#{j}", :development_value => "Value #{j}", :description => "Very important property", :parent => folder, :folder => false)
         property.generate_key!
       end
     end
@@ -59,7 +67,7 @@ class Registry < ActiveRecord::Base
     node = Registry.create(:key => ROOT_KEY, :value => ROOT_LABEL, :folder => true) unless node
     node
   end
-
+  
   def ancestors
     node, nodes = self, []
     nodes << node = node.parent while node.parent
@@ -91,23 +99,26 @@ class Registry < ActiveRecord::Base
   def to_folder_hash
     {
       "id"    => id.to_s,
-      "text"  => (value.blank? ? key : value),
+      "key"   => short_key.to_s,
+      "label" => label.to_s,
+      "text"  => (label.blank? ? key : label),
       "cls"   => "folder"
     }
   end
 
-  def to_property_hash
+  def to_property_hash(smart_label = true)
     {
       "id"                  => id.to_s,
-      "key"                 => short_key,
-      "full_key"            => key,
-      "value"               => value,
+      "label"               => (smart_label ? (label.blank? ? short_key : label) : label),
+      "key"                 => short_key.to_s,
+      "full_key"            => key.to_s,
+      "value"               => value_for(curr_env),
       "description"         => description.to_s,
-      "default_test"        => default_test,
-      "default_qa"          => default_qa,
-      "default_production"  => default_production,
-      "default_staging"     => default_staging,
-      "default_development" => default_development
+      "test_value"          => test_value.to_s,
+      "qa_value"            => qa_value.to_s,
+      "production_value"    => production_value.to_s,
+      "staging_value"       => staging_value.to_s,
+      "development_value"   => development_value.to_s
     }    
   end
   
@@ -139,15 +150,15 @@ class Registry < ActiveRecord::Base
     save if save
   end
   
-  def default_value_for(env)
-    eval("default_#{env}")
+  def value_for(env)
+    send("#{env}_value")
   rescue NameError  
     raise Exception.new("Unsupported environment: #{env}")
   end
   
   def export(hash, env)
     properties.each do |p|
-      hash[p.short_key] = p.default_value_for(env).to_s
+      hash[p.short_key] = p.value_for(env).to_s
     end
     
     folders.each do |f|
@@ -161,27 +172,15 @@ class Registry < ActiveRecord::Base
     hash.each do |key, value|
       if value.is_a?(Hash)
         reg = Registry.find_by_parent_id_and_key(self.id, key)
-        reg = Registry.create(:key => key, :value => key, :folder => true, :parent => self) unless reg
+        reg = Registry.create(:key => key, :folder => true, :parent => self) unless reg
         reg.import(value, env)
       else
         full_key = generate_key(key)
         reg = Registry.find_by_parent_id_and_key(self.id, full_key)
         reg = Registry.create(:key => full_key, :parent => self) unless reg
-        data = {"default_#{env}" => value.to_s}
-        data.merge!({"value" => value.to_s}) if Rails.env == env
+        data = {"#{env}_value" => value.to_s}
         reg.update_attributes(data)
       end
-    end
-  end
-
-  def reset(env)
-    properties.each do |p|
-      p.value = p.default_value_for(env).to_s
-      p.save
-    end
-    
-    folders.each do |f|
-      f.reset(env)
     end
   end
   

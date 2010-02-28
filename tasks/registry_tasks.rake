@@ -8,6 +8,7 @@ namespace :registry do
   desc "Sync extra files from will_filter plugin."
   task :sync do
     system "rsync -ruv vendor/plugins/registry/db/migrate db"
+    system "rsync -ruv vendor/plugins/registry/public ."
     system "rsync -ruv vendor/plugins/registry/config ."
   end
   

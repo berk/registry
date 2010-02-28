@@ -4,14 +4,14 @@ class CreateRegistry < ActiveRecord::Migration
       t.boolean :folder
       
       t.string  :key
-      t.string  :value
+      t.string  :label
       t.text    :description
       
-      t.string  :default_development
-      t.string  :default_test
-      t.string  :default_qa
-      t.string  :default_staging
-      t.string  :default_production
+      t.string  :development_value
+      t.string  :test_value
+      t.string  :qa_value
+      t.string  :staging_value
+      t.string  :production_value
       
       t.integer :parent_id, :limit => 8
       t.string  :updater_type

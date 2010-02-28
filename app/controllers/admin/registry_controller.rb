@@ -20,7 +20,7 @@ class Admin::RegistryController < AdminController
   
   def folders
     folders = []
-    node = Registry.root if params[:node] == 'root'
+    node = Registry.root if params[:node] == Registry::ROOT_KEY
     node = Registry.find_by_id(params[:node]) unless node
     node.folders.each do |child|
       folders << child.to_folder_hash
@@ -42,10 +42,10 @@ class Admin::RegistryController < AdminController
       end
     else
       fld = Registry.find_by_id(params[:folder_id]) unless params[:folder_id].blank?
-      fld = Registry.new(:value => "New Folder") unless fld
+      fld = Registry.new(:label => "New Folder") unless fld
     end
  
-    results[:folders] << fld.to_property_hash
+    results[:folders] << fld.to_folder_hash
     render :text => results.to_json
   end  
   
@@ -67,7 +67,7 @@ class Admin::RegistryController < AdminController
       prop = Registry.new unless prop
     end
  
-    results[:properties] << prop.to_property_hash
+    results[:properties] << prop.to_property_hash(false)
     render :text => results.to_json
   end
   
@@ -84,15 +84,7 @@ class Admin::RegistryController < AdminController
       
     elsif request.put?
       item = Registry.find_by_id(params[:properties][:id])
-      item.value = params[:properties][:value]
-      item.save
-      results[:properties] << item.to_property_hash
-      results[:total] = 1
-      
-    elsif request.post?
-      node = Registry.find_by_id(params[:node]) unless (params[:node] and params[:node] == 'root')
-      node = Registry.root unless node
-      item = Registry.create(params[:properties].merge(:parent => node))
+      item.update_attributes("#{Rails.env}_value" => params[:properties][:value])
       results[:properties] << item.to_property_hash
       results[:total] = 1
       
