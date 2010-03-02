@@ -50,9 +50,9 @@ class Registry < ActiveRecord::Base
   end
   
   def self.value_for(key, default = nil)
-    reg = Registry.find_by_access_key(key)
+    reg = Registry.find(:first, :conditions => ["access_key = ? and env = ?", key, curr_env])
     return default unless reg
-    reg.value_for(curr_env)  
+    reg.value.to_s  
   end
   
   def self.populate_defaults
