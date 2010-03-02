@@ -3,15 +3,12 @@ class CreateRegistry < ActiveRecord::Migration
     create_table :registry do |t|
       t.boolean :folder
       
-      t.string  :key
+      t.string  :access_key
+      t.text    :env
+      t.text    :value
+
       t.string  :label
       t.text    :description
-      
-      t.string  :development_value
-      t.string  :test_value
-      t.string  :qa_value
-      t.string  :staging_value
-      t.string  :production_value
       
       t.integer :parent_id, :limit => 8
       t.string  :updater_type
@@ -20,8 +17,8 @@ class CreateRegistry < ActiveRecord::Migration
       t.timestamps
     end
     
+    add_index :registry, [:access_key, :env]
     add_index :registry, [:parent_id]
-    add_index :registry, [:key]
     add_index :registry, [:updater_type, :updater_id]
   end
 

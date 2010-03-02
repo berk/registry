@@ -1,0 +1,148 @@
+Ext.form.Field.prototype.msgTarget = 'side';
+
+var folderFormPanel = new Ext.FormPanel({
+    frame: true,
+    title:'',
+    labelAlign: 'right',
+    labelWidth: 80,
+    width: 340,
+    waitMsgTarget: true,
+    id: 'folders',
+    reader: new Ext.data.JsonReader({
+        root: 'folders',
+        totalProperty: 'total',
+        fields: [
+                 {name: 'folder[id]', mapping: 'id'},
+                 {name: 'folder[access_key]', mapping: 'access_key'},
+                 {name: 'folder[label]', mapping: 'label'}
+                ]
+    }),
+    
+    items: [
+        new Ext.form.FieldSet({
+            title: 'Basic',
+            autoHeight: true,
+            defaultType: 'textfield',
+            items: [new Ext.form.Hidden({
+                        name: 'folder[id]',
+                        id: "folder_id"                                
+                    }), {
+                        fieldLabel: 'Key',
+                        name: 'folder[access_key]',
+                        width:240,
+                        allowBlank: false, 
+                    }, {
+                        fieldLabel: 'Label',
+                        name: 'folder[label]',
+                        width:240,
+                    }
+            ]
+        }) 
+    ]
+});
+
+var folderWindow = new Ext.Window({
+    layout:'fit',
+    title: 'Folder Details',
+    width: 400,
+    height: 200,
+    modal:true,
+    closeAction:'hide', 
+    plain: true,
+
+    items:[folderFormPanel],
+
+    buttons: [{
+        text: 'Cancel',
+        handler: function(){
+          if (tempFolder) {
+            var parent = tempFolder.parentNode;
+            parent.removeChild(tempFolder, false);
+            tempFolder.destroy();
+            parent.select();
+            tempFolder = null;
+          }
+          folderWindow.hide();
+        }
+    },{
+        text:'Submit',
+        disabled:false,
+        handler: function(){
+          saveFolder();
+        }
+    }]
+});    
+
+var lastEditedFolder = null;
+var tempFolder = null;
+
+function addFolder() {
+  lastEditedFolder = null;
+  
+   var parent = tree.getSelectionModel().getSelectedNode();
+   if (!parent)
+      parent = tree.getRootNode();
+
+   if (!parent.expanded) {
+     parent.expand();
+   } 
+
+   setTimeout(function(){
+     lastEditedFolder = parent.appendChild(new Ext.tree.AsyncTreeNode({text:'New Folder', id:''}));
+     tree.getSelectionModel().select(lastEditedFolder);
+     tempFolder = lastEditedFolder; 
+   }, 100);
+
+  folderWindow.show(this);
+  folderFormPanel.getForm().load({
+      url:'/admin/registry/folder', 
+      method:'GET', 
+      waitMsg:'Loading...'
+  });
+}
+
+function editFolder() {
+  if (tree.getSelectionModel().getSelectedNode() == tree.getRootNode()) {
+      return false;
+  }
+      
+  lastEditedFolder = tree.getSelectionModel().getSelectedNode();
+  
+  folderWindow.show(this);
+  folderFormPanel.getForm().load({
+      url:'/admin/registry/folder', 
+      params: {folder_id: lastEditedFolder.attributes.id}, 
+      method:'GET', 
+      waitMsg:'Loading...'
+  });
+}
+
+function saveFolder() {
+  var parent = lastEditedFolder.parentNode;
+  tempFolder = null;
+  
+  folderFormPanel.getForm().submit({
+        url:'/admin/registry/folder',
+        params: {folder_id: lastEditedFolder.attributes.id, parent_id: parent.attributes.id}, 
+        method:'POST', 
+        waitMsg:'Saving folder info...'
+  });
+}
+
+folderFormPanel.on({
+    actioncomplete: function(form, action){
+        if(action.type == 'submit'){
+           folderWindow.hide();
+           var parent = lastEditedFolder.parentNode;
+           var folderId = action.result.folders[0]["id"];
+           // alert(folderId);
+           
+           parent.reload();
+           lastEditedFolder = null;
+           
+           setTimeout(function() {
+             selectFolder(parent.findChild("id", "" + folderId));
+           }, 200);                   
+        }
+    }
+});

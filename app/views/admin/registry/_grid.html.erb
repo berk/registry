@@ -1,0 +1,84 @@
+var gridDataStore = new Ext.data.Store({
+    id: 'properties',
+    restful: true,
+    proxy: new Ext.data.HttpProxy({
+       url: '/admin/registry/properties?node=<%=@root.id%>',
+    }),
+    reader: new Ext.data.JsonReader({
+        idProperty: 'id',
+        root: 'properties',
+        totalProperty: 'total',
+        fields: [{name: 'id', mapping: 'id'},
+                 {name: 'label', mapping: 'label'},
+                 {name: 'value', mapping: 'value'},
+                 {name: 'description', mapping: 'description'},
+                 {name: 'access_key', mapping: 'access_key'}]
+    }),
+    writer: new Ext.data.JsonWriter({encode: false})
+});
+
+var gridToolbar = new Ext.Toolbar({
+    items:[{
+      text: '+ Add',
+      handler: addProperty
+    }, '-', {
+      id: 'edit_property_button',
+      text: 'Edit',
+      disabled: true,
+      handler: editProperty
+    }, '-', {
+      id: 'delete_property_button',
+      disabled: true,
+      text: '- Delete',
+      handler: function() {
+         var item = grid.getSelectionModel().getSelected();
+         if (!item) {
+            return false;
+         }
+         grid.store.remove(item);
+         gridToolbar.items.get("edit_property_button").disable();
+         gridToolbar.items.get("delete_property_button").disable();
+      }
+    }]
+});
+
+var grid = new Ext.grid.EditorGridPanel({
+    store: gridDataStore,
+    cm: new Ext.grid.ColumnModel([{
+         header: 'Label',
+         dataIndex: 'label',
+         sortable: true,
+      },{
+         header: 'Value',
+         dataIndex: 'value',
+         sortable: true,
+         editor: new Ext.form.TextField({
+             allowBlank: false
+         })
+    }]),
+    sm: new Ext.grid.RowSelectionModel({singleSelect: true}),
+    autoExpandColumn: true,
+    clicksToEdit: 2,
+    title: 'Properties (<span style="color:green"><%=Rails.env%></span>)',
+    collapsible: false,
+    tbar: gridToolbar,
+    region: 'center',
+    margins: '2 2 2 0',
+    viewConfig: {
+      forceFit: true
+    },
+    listeners: {
+      rowclick: function(grid, rowIndex, e) {
+        gridToolbar.items.get("edit_property_button").enable();
+        gridToolbar.items.get("delete_property_button").enable();
+      }, 
+      celldblclick: function(grid, rowIndex, columnIndex, e) {
+        if (columnIndex == 0) {
+          editProperty();
+        }
+        return true;
+      } 
+    }
+});
+
+gridDataStore.load();

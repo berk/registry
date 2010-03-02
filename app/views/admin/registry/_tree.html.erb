@@ -1,0 +1,114 @@
+var lastEditedNode = null;
+
+var treeToolbar = new Ext.Toolbar({
+    items:[{
+        text: '+ Add',
+        handler: addFolder,
+    }, '-', {
+        id: 'edit_folder_button',
+        text: 'Edit',
+        handler: editFolder,
+        disabled: true
+    }, '-', {
+        id: 'delete_folder_button',
+        text: '- Delete',
+        disabled: true,
+        handler: function(){
+            lastEditedNode = tree.getSelectionModel().getSelectedNode();
+            if (!lastEditedNode)
+              return false;
+              
+            var conn = new Ext.data.Connection();
+            conn.request({
+                url: '/admin/registry/delete_folder',
+                method: 'POST',
+                params: { "node": lastEditedNode.attributes.id},
+                success: function(responseObject) {
+                    lastEditedNode.destroy();
+                    lastEditedNode = null;
+                },
+                failure: function() {
+                    Ext.Msg.alert('Status', 'Cannot delete this folder');
+                }
+            });
+
+            treeToolbar.items.get("edit_folder_button").disable();
+            treeToolbar.items.get("delete_folder_button").disable();
+        }
+    }, '->', {
+        text: 'Import',
+        handler: function() {
+          location = "/admin/registry/import";
+        }
+    }, '-', {
+        text: 'Export',
+        handler: function() {
+          location = "/admin/registry/export";
+        }
+    }, '-', {
+        text: 'Reload',
+        handler: function(){
+          location.reload();
+        }
+    }]
+});
+
+var tree = new Ext.tree.TreePanel({
+     animate:true,
+     enableDD:false,
+     containerScroll: true,
+     rootVisible:true,
+     dataUrl: '/admin/registry/folders',
+     root: {
+        nodeType: 'async',
+        text: '<%=@root.label%>',
+        draggable: false,
+        id: '<%=@root.id%>'
+     },
+
+     // layout
+     region:'west',
+     width:300,
+     minSize: 100,
+     maxSize: 550,
+     split:true,
+     
+     // panel
+     title:'Registry Tree (<span style="color:green"><%=Rails.env%></span>)',
+     autoScroll:true,
+     tbar: treeToolbar,
+     margins: '2 0 2 2',
+     
+     listeners: {
+      click: function(n) {
+          selectFolder(n);
+      },
+      dblclick: function(n) {
+          editFolder();
+          return false;
+      }
+    }
+});
+
+tree.getRootNode().expand();
+
+function selectFolder(node) {
+  if (node == null)
+    return;
+  
+  node.select();
+  // node.expand();  
+  
+  gridDataStore.proxy.setUrl('/admin/registry/properties?node=' + node.attributes.id, true);
+  gridDataStore.reload();
+  gridToolbar.items.get("edit_property_button").disable();
+  gridToolbar.items.get("delete_property_button").disable();
+
+  if (node != tree.getRootNode()) {
+    treeToolbar.items.get("edit_folder_button").enable();
+    treeToolbar.items.get("delete_folder_button").enable();
+  } else {
+    treeToolbar.items.get("edit_folder_button").disable();
+    treeToolbar.items.get("delete_folder_button").disable();
+  }
+}

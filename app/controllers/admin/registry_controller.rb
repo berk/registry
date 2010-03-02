@@ -20,7 +20,7 @@ class Admin::RegistryController < AdminController
   
   def folders
     folders = []
-    node = Registry.root if params[:node] == Registry::ROOT_KEY
+    node = Registry.root if params[:node] == Registry::ROOT_ACCESS_KEY
     node = Registry.find_by_id(params[:node]) unless node
     node.folders.each do |child|
       folders << child.to_folder_hash
@@ -38,11 +38,11 @@ class Admin::RegistryController < AdminController
       else
         fld = Registry.find(params[:folder_id])
         fld.update_attributes(params[:folder].merge(:folder => true))
-        fld.regenerate_properties_keys!
       end
+      fld.generate_full_access_key!
     else
       fld = Registry.find_by_id(params[:folder_id]) unless params[:folder_id].blank?
-      fld = Registry.new(:key => "", :label => "") unless fld
+      fld = Registry.new unless fld
     end
  
     results[:folders] << fld.to_folder_hash
@@ -56,18 +56,34 @@ class Admin::RegistryController < AdminController
       if params[:prop_id].blank?
         parent = Registry.find_by_id(params[:parent_id])
         parent = Registry.root unless parent
-        prop = Registry.create(params[:property].merge(:parent => parent))
+        
+        Registry.environments.each do |env|
+          prop = Registry.create(:parent      => parent, 
+                                 :access_key  => params[:property][:key], 
+                                 :label       => params[:property][:label],
+                                 :description => params[:property][:description],
+                                 :env         => env,
+                                 :value       => params[:property]["#{env}_value"])
+          prop.generate_full_access_key!                                 
+        end
       else
         prop = Registry.find(params[:prop_id])
-        prop.update_attributes(params[:property])
+        Registry.environments.each do |env|
+          reg = Registry.find(:first, :conditions => ["access_key = ? and env = ?", prop.access_key, env])
+          reg = Registry.create(:parent => prop.parent, :env => env) unless reg
+          reg.update_attributes(:access_key   => params[:property][:key],
+                                :label        => params[:property][:label],
+                                :description  => params[:property][:description],
+                                :value        => params[:property]["#{env}_value"])
+          reg.generate_full_access_key!                     
+        end
       end
-      prop.generate_key!
     else
       prop = Registry.find_by_id(params[:prop_id]) unless params[:prop_id].blank?
       prop = Registry.new unless prop
     end
  
-    results[:properties] << prop.to_property_hash(false)
+    results[:properties] << prop.to_form_property_hash if prop
     render :text => results.to_json
   end
   
@@ -78,19 +94,19 @@ class Admin::RegistryController < AdminController
       node = Registry.find_by_id(params[:node]) unless (params[:node] and params[:node] == 'root')
       node = Registry.root unless node
       node.properties.each do |item|
-        results[:properties] << item.to_property_hash
+        results[:properties] << item.to_grid_property_hash
       end
       results[:total] = node.children.size
       
     elsif request.put?
       item = Registry.find_by_id(params[:properties][:id])
-      item.update_attributes("#{Rails.env}_value" => params[:properties][:value])
-      results[:properties] << item.to_property_hash
+      item.update_attributes("value" => params[:properties][:value])
+      results[:properties] << item.to_grid_property_hash
       results[:total] = 1
       
     elsif request.delete?
       node = Registry.find_by_id(params[:properties])
-      node.destroy if node
+      Registry.delete_property(node.access_key) if node
     end
     
     render :text => results.to_json

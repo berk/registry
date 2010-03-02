@@ -1,0 +1,9 @@
+var infoTplMarkup = ['<span style="font-size:12px"><b>Access Code</b>: result = Registry.value_for("<b>{access_key}</b>")<br></style>',
+                     '<span style="font-size:12px"><b>Description</b>: {description}</style>'];
+var infoTpl = new Ext.Template(infoTplMarkup);
+
+grid.getSelectionModel().on('rowselect', function(sm, rowIdx, r) {
+    var infoPanel = Ext.getCmp('infoPanel');
+    infoTpl.overwrite(infoPanel.body, r.data);
+});
+
