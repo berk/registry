@@ -9,7 +9,7 @@ class Registry < ActiveRecord::Base
   
   ROOT_ACCESS_KEY = 'root'
   ROOT_LABEL = "Configuration Schema"
-  DEFAULT_YML_LOCATION = "config/registry.yml"
+  DEFAULT_YML_LOCATION = "#{Rails.root}/config/registry.yml"
 
   def self.environments
     return REGISTRY_ENVIRONMENTS if defined?(REGISTRY_ENVIRONMENTS)

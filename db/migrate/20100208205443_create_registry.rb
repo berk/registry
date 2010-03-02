@@ -5,10 +5,10 @@ class CreateRegistry < ActiveRecord::Migration
       
       t.string  :access_key
       t.string  :env
-      t.text    :value
+      t.string  :value
 
       t.string  :label
-      t.text    :description
+      t.string  :description
       
       t.integer :parent_id, :limit => 8
       t.string  :updater_type
