@@ -4,7 +4,7 @@ class CreateRegistry < ActiveRecord::Migration
       t.boolean :folder
       
       t.string  :access_key
-      t.text    :env
+      t.string  :env
       t.text    :value
 
       t.string  :label
