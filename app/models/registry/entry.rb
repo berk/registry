@@ -100,57 +100,31 @@ module Registry
     def to_folder_hash
       {
         'id'    => id.to_s,
-        'key'   => key.to_s,
+        'key'   => encode(key),
         'label' => label.to_s,
         'text'  => (label.blank? ? key : label),
-        'cls'   => 'folder'
+        'cls'   => 'folder',
       }
     end
 
     def to_grid_property_hash
       {
         'id'           => id.to_s,
+        'key'          => key,
+        'value'        => value,
         'label'        => (label.blank? ? key : label),
-        'value'        => value.to_s,
-        'key'          => key.to_s,
-        'description'  => description.to_s
+        'description'  => description.to_s,
+        'access_code'  => access_code,
       }
     end
 
     def to_form_property_hash
-      hash = {
-        'label'               => label.to_s,
-        'key'                 => key.to_s,
-        'description'         => description.to_s,
+      {
+        'key'          => key.to_s,
+        'value'        => value.to_s,
+        'label'        => label.to_s,
+        'description'  => description.to_s,
       }
-
-      unless id.blank?
-        Entry.find(:all, :conditions => ['key = ?', key]).each do |reg|
-          hash["#{reg.env}_value"] = reg.value
-        end
-      else
-        Entry.environments.each do |env|
-          hash["#{env}_value"] = ''
-        end
-      end
-
-      hash
-    end
-
-    def regenerate_properties_keys!
-      properties.each do |p|
-        p.save!
-      end
-
-      folders.each do |f|
-        f.regenerate_properties_keys!
-      end
-    end
-
-    def short_key
-ActiveSupport::Deprecation.warn('avoid short_key', caller)
-      return '' if key.blank?
-      @short_key ||= key.split(Registry.configuration.key_separator).last
     end
 
     def export(hash={})
@@ -180,11 +154,6 @@ ActiveSupport::Deprecation.warn('avoid short_key', caller)
       end
     end
 
-#    def self.delete_property(key)
-#      # delete all values for all environments for a given key
-#      destroy_all(:key => key)
-#    end
-
   private
 
     def encode(value)
@@ -208,14 +177,12 @@ ActiveSupport::Deprecation.warn('avoid short_key', caller)
       value
     end
 
-
-    def generate_full_key(partial_key=key)
-ActiveSupport::Deprecation.warn('avoid generate_full_key', caller)
-      parts = []
+    def access_code
+      parts = [ 'Registry' ]
       parts << (ancestors.collect{|a| a.key}.reverse - [ROOT_ACCESS_KEY])
       parts.flatten!.compact!
-      parts << partial_key.split(Registry.configuration.key_separator).last
-      parts.join(Registry.configuration.key_separator)
+      parts << (([TrueClass, FalseClass].include?(decode(value).class)) ? "#{key}?" : key)
+      parts.join('.')
     end
 
     def ensure_env

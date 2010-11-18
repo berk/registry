@@ -1,87 +1,75 @@
 var propertyFormPanel = new Ext.FormPanel({
-    frame: true,
-    title:'',
-    labelAlign: 'right',
-    labelWidth: 80,
-    width: 340,
-    waitMsgTarget: true,
-    id: 'properties',
-    reader: new Ext.data.JsonReader({
-        idProperty: 'id',
-        root: 'properties',
-        totalProperty: 'total',
-        fields: [
-                 {name: 'property[key]', mapping: 'key'},
-                 {name: 'property[label]', mapping: 'label'},
-                 {name: 'property[description]', mapping: 'description'},
-                 <% Registry.environments.each_with_index do |env, index| %>
-                    {name: 'property[<%=env%>_value]', mapping: '<%=env%>_value'}<%="," if index < Registry.environments.size %>   
-                 <% end %>
-                ]
-    }),
-    
-    items: [
-        new Ext.form.FieldSet({
-            title: 'Basic',
-            autoHeight: true,
-            defaultType: 'textfield',
-            id: 'property',
-            items: [{
-                        fieldLabel: 'Key',
-                        name: 'property[key]',
-                        width:240,
-                        allowBlank: false
-                    }, {
-                        fieldLabel: 'Label',
-                        name: 'property[label]',
-                        width:240
-                    }, {
-                        fieldLabel: 'Description',
-                        name: 'property[description]',
-                        width:240
-                    }
-            ]
-        }), 
-        new Ext.form.FieldSet({
-            title: 'Environment Values',
-            autoHeight: true,
-            defaultType: 'textfield',
-            items: [
-                   <% Registry.environments.each_with_index do |env, index| %>
-                    {
-                        fieldLabel: '<%=env.capitalize%>',
-                        name: 'property[<%=env%>_value]',
-                        width:240
-                    }<%="," if index < Registry.environments.size %>
-                   <% end %>
-            ]
-        })
+  frame: true,
+  title:'',
+  labelAlign: 'right',
+  labelWidth: 80,
+  width: 340,
+  waitMsgTarget: true,
+  id: 'properties',
+  reader: new Ext.data.JsonReader({
+    idProperty: 'id',
+    root: 'properties',
+    totalProperty: 'total',
+    fields: [
+      {name: 'property[key]', mapping: 'key'},
+      {name: 'property[value]', mapping: 'value'},
+      {name: 'property[label]', mapping: 'label'},
+      {name: 'property[description]', mapping: 'description'},
     ]
+  }),
+  
+  items: [
+    new Ext.form.FieldSet({
+      title: 'Basic',
+      autoHeight: true,
+      defaultType: 'textfield',
+      id: 'property',
+      items: [{
+            fieldLabel: 'Key',
+            name: 'property[key]',
+            width:240,
+            allowBlank: false
+          }, {
+            fieldLabel: 'Label',
+            name: 'property[label]',
+            width:240
+          }, {
+            fieldLabel: 'Description',
+            name: 'property[description]',
+            width:240
+          }, {
+            fieldLabel: 'Value',
+            name: 'property[value]',
+            width:240
+          }
+      ]
+    }), 
+  ]
 });
 
 var propertyWindow = new Ext.Window({
-    layout:'fit',
-    title: 'Property Details',
-    width: 400,
-    height: (230 + (<%=Registry.environments.size %> * 30)),
-    modal:true,
-    closeAction:'hide',
-    plain: true,
+  layout:'fit',
+  title: 'Property Details',
+  width: 400,
+  height: (230 + (<%=Registry::Entry.environments.size %> * 30)),
+  modal:true,
+  closeAction:'hide',
+  plain: true,
 
-    items:[propertyFormPanel],
+  items:[propertyFormPanel],
 
-    buttons: [{
-        text: 'Cancel',
-        handler: function(){
-          propertyWindow.hide();
-        }
-    },{
-        text:'Submit',
-        disabled:false,
-        handler: function(){
-          saveProperty();
-        }
-    }]
+  buttons: [{
+    text: 'Cancel',
+    handler: function(){
+      propertyWindow.hide();
+    }
+  },{
+    text:'Submit',
+    disabled:false,
+    handler: function(){
+      saveProperty();
+    }
+  }]
 });
 
 var lastEditedProperty = null;
@@ -92,9 +80,9 @@ function addProperty(){
   propertyWindow.show(this);
 
   propertyFormPanel.getForm().load({
-      url:'/admin/registry/property',
-      method:'GET', 
-      waitMsg:'Loading...'
+    url:'<%= url_for :action => 'property' %>',
+    method:'GET', 
+    waitMsg:'Loading...'
   });
 }
 
@@ -103,35 +91,35 @@ function editProperty() {
   
   propertyWindow.show(this);
   propertyFormPanel.getForm().load({
-      url:'/admin/registry/property', 
-      params: {prop_id: lastEditedProperty.id}, 
-      method:'GET', 
-      waitMsg:'Loading...'
+    url:'<%= url_for :action => 'property' %>',
+    params: {prop_id: lastEditedProperty.id}, 
+    method:'GET', 
+    waitMsg:'Loading...'
   });
 }
 
 function saveProperty() {
   var node = tree.getSelectionModel().getSelectedNode();
   if (!node)
-    node = tree.getRootNode();
-    
+  node = tree.getRootNode();
+  
   var prop_id = ((lastEditedProperty!=null) ? lastEditedProperty.id : "");
 
   propertyFormPanel.getForm().submit({
-        url:'/admin/registry/property',
-        params: {prop_id: prop_id, parent_id: node.attributes.id}, 
-        method:'POST', 
-        waitMsg:'Saving property info...'
+    url:'<%= url_for :action => 'property' %>',
+    params: {prop_id: prop_id, parent_id: node.attributes.id}, 
+    method:'POST', 
+    waitMsg:'Saving property info...'
   });
-        
+    
 }
 
 propertyFormPanel.on({
-    actioncomplete: function(form, action){
-        if(action.type == 'submit'){
-           lastEditedProperty = null;
-           propertyWindow.hide(); 
-           gridDataStore.reload();                   
-        }
+  actioncomplete: function(form, action){
+    if(action.type == 'submit'){
+       lastEditedProperty = null;
+       propertyWindow.hide(); 
+       gridDataStore.reload();           
     }
+  }
 });

@@ -30,14 +30,6 @@ module Registry
     (@registry ||= RegistryWrapper.new(Entry.root.export)).send(method, *args)
   end
 
-  def self.export(file)
-    Entry.export(file)
-  end
-
-  def self.import(file)
-    Entry.import(file)
-  end
-
   def self.reset
     @registry = nil
   end

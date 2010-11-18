@@ -13,7 +13,7 @@ var folderFormPanel = new Ext.FormPanel({
         totalProperty: 'total',
         fields: [
                  {name: 'folder[id]', mapping: 'id'},
-                 {name: 'folder[access_key]', mapping: 'access_key'},
+                 {name: 'folder[key]', mapping: 'key'},
                  {name: 'folder[label]', mapping: 'label'}
                 ]
     }),
@@ -28,7 +28,7 @@ var folderFormPanel = new Ext.FormPanel({
                         id: "folder_id"                                
                     }), {
                         fieldLabel: 'Key',
-                        name: 'folder[access_key]',
+                        name: 'folder[key]',
                         width:240,
                         allowBlank: false, 
                     }, {
@@ -95,7 +95,7 @@ function addFolder() {
 
   folderWindow.show(this);
   folderFormPanel.getForm().load({
-      url:'/admin/registry/folder', 
+      url:'<%= url_for :action => 'folder' %>',
       method:'GET', 
       waitMsg:'Loading...'
   });
@@ -110,7 +110,7 @@ function editFolder() {
   
   folderWindow.show(this);
   folderFormPanel.getForm().load({
-      url:'/admin/registry/folder', 
+      url:'<%= url_for :action => 'folder' %>',
       params: {folder_id: lastEditedFolder.attributes.id}, 
       method:'GET', 
       waitMsg:'Loading...'
@@ -122,10 +122,10 @@ function saveFolder() {
   tempFolder = null;
   
   folderFormPanel.getForm().submit({
-        url:'/admin/registry/folder',
-        params: {folder_id: lastEditedFolder.attributes.id, parent_id: parent.attributes.id}, 
-        method:'POST', 
-        waitMsg:'Saving folder info...'
+    url:'<%= url_for :action => 'folder' %>',
+    params: {folder_id: lastEditedFolder.attributes.id, parent_id: parent.attributes.id}, 
+    method:'POST', 
+    waitMsg:'Saving folder info...'
   });
 }
 

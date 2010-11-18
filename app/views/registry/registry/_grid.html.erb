@@ -2,17 +2,19 @@ var gridDataStore = new Ext.data.Store({
     id: 'properties',
     restful: true,
     proxy: new Ext.data.HttpProxy({
-       url: '/admin/registry/properties?node=<%=@root.id%>',
+       url: '<%= url_for :action => 'properties', :node => @root.id%>',
     }),
     reader: new Ext.data.JsonReader({
         idProperty: 'id',
         root: 'properties',
         totalProperty: 'total',
         fields: [{name: 'id', mapping: 'id'},
-                 {name: 'label', mapping: 'label'},
+                 {name: 'key', mapping: 'key'},
                  {name: 'value', mapping: 'value'},
+                 {name: 'label', mapping: 'label'},
                  {name: 'description', mapping: 'description'},
-                 {name: 'access_key', mapping: 'access_key'}]
+                 {name: 'access_code', mapping: 'access_code'},
+                ]
     }),
     writer: new Ext.data.JsonWriter({encode: false})
 });
