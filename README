@@ -62,3 +62,33 @@
       end
 
     end # class ApiController
+
+
+  ---
+
+  To initialize your registry, create a file of default values and add a rake task.
+
+
+  in config/registry.yml
+
+    development:
+      api_enabled:        true
+      api_request_limit:  1
+   
+    test:
+      api_enabled:        true
+      api_request_limit:  1
+   
+    production:
+      api_enabled:        false
+      api_request_limit:  1
+   
+
+  in lib/tasks/my_tasks.rake
+
+    desc 'Import configuration'
+    task :import_configuration => [:environment] do
+      Registry.import("#{Rails.root}/config/registry.yml")
+    end
+
+

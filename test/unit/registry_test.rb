@@ -34,4 +34,19 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal reg['foo'], Registry.foo.to_hash
   end
 
+
+  test 'import' do
+
+    File.open('/tmp/foo.yml', 'w+') do |file|
+      reg = {
+        'test' => {'api' => {'enabled' => true}}
+      }
+      YAML.dump(reg, file)
+    end
+
+    Registry.import('/tmp/foo.yml')
+
+    assert_equal true, Registry.api.enabled?
+  end
+
 end # class RegistryTest
