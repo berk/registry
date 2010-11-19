@@ -22,7 +22,7 @@
 #  index_registry_entries_on_env_and_key            (env,key)
 #
 
-require 'lib/registry'
+require 'registry'
 
 module Registry
   class Entry < ActiveRecord::Base
