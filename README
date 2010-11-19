@@ -1,0 +1,60 @@
+=== Registry Engine
+
+  This engine provides a registry mechanism which can be used to enable/disable
+  functionality or change parameters at runtime.
+
+
+=== Installation
+
+  script/plugin install git://github.com/berk/registry.git
+
+
+=== Test
+
+  script/server
+  point your browser at http://localhost:3000/registry
+
+
+=== Usage
+
+  Configure the plugin
+
+  in config/initializers/registry.rb
+
+    Registry.configure do |config|
+
+      config.permission_check { redirect_to login_path and return false unless current_user.admin? }
+
+    end
+
+
+=== Example usage
+
+  in app/controllers/api_controller.rb
+    
+    class ApiController < ActionController::Base
+
+      before_filter :ensure_api_enabled, :check_rate_limit
+
+      ...
+
+    private
+
+      def ensure_api_enabled
+        raise ServiceUnavailableError.new('API Disabled') unless Registry.api.enabled?
+      end
+
+      def check_rate_limit
+        cache_key = "api_rate_limit_p#{current_user.id}"
+
+        requests = Rails.cache.read(cache_key).to_i
+        if requests >= Registry.api.request_limit
+          # Over the limit.
+          raise ForbiddenError.new('Rate limit exceeded.')
+        else
+          # Under the limit.
+          Rails.cache.write(cache_key, (requests+1).to_s, :expires_in => Registry.api.request_window)
+        end
+      end
+
+    end # class ApiController
