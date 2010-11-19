@@ -1,0 +1,13 @@
+== Stuff to do
+
+Add an updater method to the configuration which takes a proc
+
+Add notes field
+
+Add notifications
+  listener thread
+
+Add search box
+
+Add lockability
+  lock icon

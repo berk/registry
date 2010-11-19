@@ -1,0 +1,27 @@
+# SQLite version 3.x
+#   gem install sqlite3-ruby (not necessary on OS X Leopard)
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+  pool: 5
+  timeout: 5000
+
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+  pool: 5
+  timeout: 5000
+
+pg_development:
+  adapter: postgresql
+  host: localhost
+  encoding: utf8
+  username: postgres
+  database: sme_dev
+
+pg_test:
+  adapter: postgresql
+  host: localhost
+  encoding: utf8
+  username: postgres
+  database: sme_test
