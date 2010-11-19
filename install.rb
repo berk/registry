@@ -1,1 +1,1 @@
-# Install hook code here
+rails/install.rb

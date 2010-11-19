@@ -14,11 +14,4 @@ namespace :registry do
     sh "rcov --rails -t --sort coverage -o public/coverage -x '/usr/local/rvm/gems/ree-1.8.7-2010.02/gems' #{files}"
   end
 
-  desc "Sync extra files from will_filter plugin."
-  task :sync do
-    system "rsync -ruv vendor/plugins/registry/db/migrate db"
-    system "rsync -ruv vendor/plugins/registry/public ."
-    system "rsync -ruv vendor/plugins/registry/config ."
-  end
-
 end
