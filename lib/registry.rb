@@ -3,13 +3,13 @@ module Registry
   # Configure the Registry Engine.
   #
   # call-seq:
-  #
   #   Registry.configure do |config|
   #
-  #     config.permission_check do
-  #       current_user.admin?
-  #     end
+  #     # permission check used by Registry UI
+  #     config.permission_check { current_user.admin? }
   #
+  #     # layout used by Registry UI
+  #     config.layout = 'admin'
   #   end
   def self.configure
     yield configuration

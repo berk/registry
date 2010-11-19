@@ -190,7 +190,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
     assert_equal '0..5', @root.children.first.value
   end
 
-  test 'permission checking' do
+  test 'permission checking configuration' do
     Registry.configure do |config|
       config.permission_check {redirect_to '/foo' and return false}
     end
@@ -205,5 +205,19 @@ class Registry::RegistryControllerTest < ActionController::TestCase
     get :index
     assert_response :success
   end
+
+  test 'layout configuration' do
+    Registry.configure do |config|
+      config.layout = 'foo'
+    end
+
+    assert_raise ActionView::MissingTemplate do
+      get :index
+    end
+
+    Registry.configure do |config|
+      config.layout = nil
+    end
+ end
 
 end

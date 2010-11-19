@@ -23,7 +23,11 @@
 
     Registry.configure do |config|
 
+      # This permission check is used to access the registry UI
       config.permission_check { redirect_to login_path and return false unless current_user.admin? }
+
+      # The layout used by the registry UI
+      config.layout = 'admin'
 
     end
 
