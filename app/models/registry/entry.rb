@@ -27,6 +27,8 @@ require 'registry'
 module Registry
   class Entry < ActiveRecord::Base
 
+    acts_as_versioned :table_name => 'registry_entry_versions'
+
     set_table_name :registry_entries
 
     belongs_to :parent,     :class_name => 'Entry', :foreign_key => 'parent_id'

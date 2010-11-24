@@ -57,6 +57,20 @@ module Registry
       assert_equal expected, Entry.export!(nil)
     end
 
+    test 'versioning' do
+      prop = Entry.root.create_property(:key => 'one', :value => 'one')
+
+      assert_difference 'Registry::Entry::Version.count', 1 do
+        prop.update_attributes(:value => 'two')
+      end
+
+      prop.revert_to!(1)
+      assert_equal 'one', prop.reload.value, 'Reversion failed'
+
+      prop.update_attributes(:value => 'three')
+      assert_equal 3, prop.reload.version
+    end
+
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)
