@@ -1,8 +1,10 @@
 == Stuff to do
 
-Add an updater method to the configuration which takes a proc
+Add undo history
 
-Add notes field
+Prevent re-adding of already deleted keys
+
+Add an updater method to the configuration which takes a proc
 
 Add notifications
   listener thread
