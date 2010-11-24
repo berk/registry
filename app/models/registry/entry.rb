@@ -148,7 +148,7 @@ module Registry
       hash.each do |key, value|
         key = encode(key)
         reg = Entry.first(:conditions => ['parent_id = ? AND key = ?', self, key])
-        if value.is_a?(Hash) 
+        if value.is_a?(Hash)
           reg = create_folder(:key => key) if reg.nil? && should_create?(key, opts)
           reg.merge(value, opts) unless reg.nil?
         elsif reg.nil? && should_create?(key, opts)
@@ -203,11 +203,11 @@ module Registry
     end
 
     def should_create?(key, opts)
-      !opts[:skip_already_deleted] || no_prior_deleted_version?
+      !opts[:skip_already_deleted] || no_prior_deleted_version?(key)
     end
 
-    def no_prior_deleted_version?
-      Registry::Entry::Version.first(:conditions => {:parent_id => (parent && parent.id), :key => key}).nil?
+    def no_prior_deleted_version?(key)
+      Registry::Entry::Version.first(:conditions => {:parent_id => id, :key => key}).nil?
     end
 
   end # class Entry
