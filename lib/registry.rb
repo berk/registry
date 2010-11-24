@@ -64,8 +64,8 @@ module Registry
   # call-seq:
   #   Registry.import("#{Rails.root}/config/defaults.yml")
   #
-  def self.import(file)
-    Entry.import!(file)
+  def self.import(file, opts={})
+    Entry.import!(file, opts)
   end
 
 private

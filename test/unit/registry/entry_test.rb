@@ -71,6 +71,30 @@ module Registry
       assert_equal 3, prop.reload.version
     end
 
+    test 'skip_already_deleted prevents property creation if deleted' do
+      Entry.root.create_property(:key => 'one', :value => 'one').destroy
+
+      folder = Entry.root.create_folder(:key => 'folder')
+      folder.create_property (:key => 'two', :value => 'two').destroy
+
+      assert_no_difference 'Registry::Entry.count' do
+        Entry.root.merge({'one' => 'two'}, :skip_already_deleted => true)
+        folder.merge({'two' => 'three'}, :skip_already_deleted => true)
+      end
+    end
+
+    test 'skip_already_deleted prevents folder creation if deleted' do
+      Entry.root.create_folder(:key => 'one').destroy
+
+      folder = Entry.root.create_folder(:key => 'folder')
+      folder.create_folder(:key => 'two').destroy
+
+      assert_no_difference 'Registry::Entry.count' do
+        Entry.root.merge({'one' => {'one' => 'one'}}, :skip_already_deleted => true)
+        Entry.root.merge({'folder' => {'two' => {:one => 'one'}}}, :skip_already_deleted => true)
+      end
+    end
+
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)

@@ -64,9 +64,9 @@ module Registry
       yaml_data
     end
 
-    def self.import!(file_path = DEFAULT_YML_LOCATION)
+    def self.import!(file_path = DEFAULT_YML_LOCATION, opts={})
       YAML.load_file( file_path ).each do |env, entries|
-        root(env).merge(entries)
+        root(env).merge(entries, opts)
       end
     end
 
@@ -144,15 +144,17 @@ module Registry
       hash
     end
 
-    def merge(hash)
+    def merge(hash, opts={})
       hash.each do |key, value|
         key = encode(key)
         reg = Entry.first(:conditions => ['parent_id = ? AND key = ?', self, key])
-        if value.is_a?(Hash)
-          reg = create_folder(:key => key) if reg.nil?
-          reg.merge(value)
-        elsif reg.nil?
+        if value.is_a?(Hash) 
+          reg = create_folder(:key => key) if reg.nil? && should_create?(key, opts)
+          reg.merge(value, opts) unless reg.nil?
+        elsif reg.nil? && should_create?(key, opts)
           create_property(:key => key, :value => value)
+        else
+          # don't overwrite
         end
       end
     end
@@ -198,6 +200,14 @@ module Registry
 
     def normalize_value
       self.value = encode(value)
+    end
+
+    def should_create?(key, opts)
+      !opts[:skip_already_deleted] || no_prior_deleted_version?
+    end
+
+    def no_prior_deleted_version?
+      Registry::Entry::Version.first(:conditions => {:parent_id => (parent && parent.id), :key => key}).nil?
     end
 
   end # class Entry
