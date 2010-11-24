@@ -11,6 +11,7 @@ module Registry
   #     # layout used by Registry UI
   #     config.layout = 'admin'
   #   end
+  #
   def self.configure
     yield configuration
   end
@@ -26,6 +27,7 @@ module Registry
   #
   #   Registry.api.enabled?       # => true
   #   Registry.api.request_limit? # => 1
+  #
   def self.method_missing(method, *args)
     (@registry ||= RegistryWrapper.new(Entry.root.export)).send(method, *args)
   end
@@ -33,6 +35,7 @@ module Registry
   # Reset the registry.
   #
   # This will force a reload next time it is accessed.
+  #
   def self.reset
     @registry = nil
   end
@@ -43,20 +46,24 @@ module Registry
   #
   #---
   # development:
-  #   api_enabled:        true
-  #   api_request_limit:  1
+  #   api:
+  #     enabled:        true
+  #     request_limit:  1
   #
   # test:
-  #   api_enabled:        true
-  #   api_request_limit:  1
+  #   api:
+  #     enabled:        true
+  #     request_limit:  1
   #
   # production:
-  #   api_enabled:        false
-  #   api_request_limit:  1
+  #   api:
+  #     enabled:        false
+  #     request_limit:  1
   #
   #---
   # call-seq:
   #   Registry.import("#{Rails.root}/config/defaults.yml")
+  #
   def self.import(file)
     Entry.import!(file)
   end
