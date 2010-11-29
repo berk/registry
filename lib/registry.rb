@@ -85,9 +85,42 @@ private
       boolean_expected ? !!ret : ret
     end
 
+    def method_missing(method, *args)
+      super
+    rescue NoMethodError
+      raise unless @hash.has_key?(method.to_s.sub(/[\?=]{0,1}$/, ''))
+      add_methods_for(method)
+      send(method, *args)
+    end
+
     def to_hash
       @hash
     end
+
+  private
+
+    def add_methods_for(method)
+      method = method.to_s.sub(/[\?=]{0,1}$/, '')
+
+      self.class_eval %{
+
+        def #{method}                                         # def foo
+          ret = @hash['#{method}']                            #   ret = @hash['foo']
+          ret = self.class.new(ret) if ret.is_a?(Hash)        #   ret = self.class.new(ret) if ret.is_a?(Hash)
+          ret                                                 #   ret
+        end                                                   # end
+
+        def #{method}=(value)                                 # def foo=(value)
+          @hash['#{method}'] = value                          #   @hash['foo'] = value
+        end                                                   # end
+
+        def #{method}?                                        # def foo?
+          !!@hash['#{method}']                                #   !!@hash['foo']
+        end                                                   # end
+
+      }, __FILE__, __LINE__
+    end
+
   end
 
 end # module Registry

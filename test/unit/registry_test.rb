@@ -18,7 +18,9 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal true, Registry.api?
     assert_equal true, Registry.api.enabled?
     assert_equal 1, Registry.api.limit
-    assert_equal nil, Registry.api.foo
+    assert_raise NoMethodError do
+      Registry.api.foo
+    end
   end
 
   test 'to_hash' do
