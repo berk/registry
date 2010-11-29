@@ -6,4 +6,4 @@ module Registry
     end
 
   end # class Folder
-end # module Registry::Entries
+end # module Registry
