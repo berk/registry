@@ -13,6 +13,8 @@
 #  user_id     :integer
 #  created_at  :datetime
 #  updated_at  :datetime
+#  version     :integer
+#  notes       :text
 #
 # Indexes
 #
