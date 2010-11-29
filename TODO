@@ -1,15 +1,11 @@
 == Stuff to do
 
-Add undo history
+Add undo history to UI (Michael)
 
-Prevent re-adding of already deleted keys
-
-Add an updater method to the configuration which takes a proc
-
-Add notifications
+Add notifications (Scott)
   listener thread
 
-Add search box
+Add search box (Michael)
 
-Add lockability
+Add lockability (Michael)
   lock icon

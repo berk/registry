@@ -1,9 +1,32 @@
 ENV['RAILS_ENV'] = 'test'
 require File.expand_path(File.dirname(__FILE__) + '/../config/environment')
 require 'test_help'
+require 'ostruct'
 
 class ActiveSupport::TestCase
-  # Add more helper methods to be used by all tests here...
+  
+  def with_login
+    user = OpenStruct.new(:destroyed? => false, :new_record? => false)
+
+    def user.id
+      42
+    end
+
+    def OpenStruct.base_class
+      self
+    end
+
+    Registry.configure do |config|
+      config.user { user }
+    end
+
+    yield user
+
+  ensure
+    Registry.configure do |config|
+      config.user
+    end
+  end
 
   def assert_hash(expected, result, so_far=nil)
     diff = expected.keys - result.keys
@@ -24,3 +47,5 @@ class ActiveSupport::TestCase
   end
 
 end
+
+

@@ -34,6 +34,7 @@ module Registry
 
     belongs_to :parent,     :class_name => 'Entry', :foreign_key => 'parent_id'
     has_many   :children,   :class_name => 'Entry', :foreign_key => 'parent_id', :order => 'key asc', :dependent => :destroy
+    belongs_to :user,       :polymorphic => true
 
     before_save :ensure_env
     before_save :normalize_key
