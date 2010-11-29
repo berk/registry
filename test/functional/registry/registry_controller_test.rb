@@ -56,7 +56,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
   end
 
   test 'folder creation' do
-    with_login do |user|
+    with_login(42) do |id|
       assert_difference 'Registry::Folder.count', 1 do
         post :folder, :folder_id => 'xnode-123', :folder => {:label => 'Label', :key => 'key'}, :parent_id => @root.id
         assert_response :success
@@ -67,15 +67,13 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'folders'  => [{'id' => @root.folders.first.id.to_s, 'key' => 'key', 'label' => 'Label', 'text' => 'Label', 'cls' => 'folder'}]
       }
       assert_equal expected, JSON.parse(@response.body)
-      folder = Registry::Folder.last
-      assert_equal user.class.name, folder.user_type
-      assert_equal user.id, folder.user_id
+      assert_equal id, Registry::Folder.last.user_id
     end
   end
 
   test 'folder update' do
-    with_login do |user|
-      child = Registry::Folder.create!(:parent => @root, :key => 'key', :label => 'label', :user => user)
+    with_login(42) do |id|
+      child = Registry::Folder.create!(:parent => @root, :key => 'key', :label => 'label', :user_id => id)
       assert_no_difference 'Registry::Folder.count' do
         post :folder, :folder_id => child.id, :folder => {:id => child.id, :label => 'Label', :key => 'Key'}, :parent_id => @root.id
         assert_response :success
@@ -89,8 +87,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'folders'  => [{'id' => child.id.to_s, 'key' => 'Key', 'label' => 'Label', 'text' => 'Label', 'cls' => 'folder'}]
       }
       assert_equal expected, JSON.parse(@response.body)
-      assert_equal user.class.name, child.user_type
-      assert_equal user.id, child.user_id
+      assert_equal id, child.user_id
     end
   end
 
@@ -108,7 +105,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
   end
 
   test 'property creation' do
-    with_login do |user|
+    with_login(42) do |id|
       assert_difference 'Registry::Entry.count', 1 do
         post :property, :parent_id => @root.id, :property => {:label => 'Label', :key => 'key', :value => 'value', :description => 'Description'}
         assert_response :success
@@ -119,15 +116,13 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'properties'  => [{'label' => 'Label', 'value' => 'value', 'description' => 'Description', 'key' => 'key'}]
       }
       assert_equal expected, JSON.parse(@response.body)
-      entry = Registry::Entry.last
-      assert_equal user.class.name, entry.user_type
-      assert_equal user.id, entry.user_id
+      assert_equal id, Registry::Entry.last.user_id
     end
   end
 
   test 'property update' do
-    with_login do |user|
-      child = Registry::Entry.create!(:parent => @root, :key => 'key', :value => 'value', :label => 'label', :description => 'description')
+    with_login(42) do |id|
+      child = Registry::Entry.create!(:parent => @root, :key => 'key', :value => 'value', :label => 'label', :description => 'description', :user_id => 1)
       assert_no_difference 'Registry::Folder.count' do
         post :property, :parent_id => @root.id, :prop_id => child.id, :property => {:key => 'Key', :value => 'Value', :label => 'Label', :description => 'Description'}
         assert_response :success
@@ -141,9 +136,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'properties'  => [{'key' => 'Key', 'value' => 'Value', 'label' => 'Label', 'description' => 'Description'}]
       }
       assert_equal expected, JSON.parse(@response.body)
-      entry = Registry::Entry.last
-      assert_equal user.class.name, entry.user_type
-      assert_equal user.id, entry.user_id
+      assert_equal id, Registry::Entry.last.user_id
     end
   end
 
@@ -164,7 +157,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
   end
 
   test 'properties put' do
-    with_login do |user|
+    with_login(42) do |id|
       one = Registry::Entry.create!(:parent => @root, :key => 'one', :value => '1')
       put :properties, :properties => {:id => one.id, :value => '2', :label => 'discarded'}
       assert_response :success
@@ -176,14 +169,12 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         ]
       }
       assert_equal expected, JSON.parse(@response.body)
-      entry = Registry::Entry.last
-      assert_equal user.class.name, entry.user_type
-      assert_equal user.id, entry.user_id
+      assert_equal id, Registry::Entry.last.user_id
     end
   end
 
   test 'properties delete' do
-    with_login do |user|
+    with_login(42) do |id|
       one = Registry::Entry.create!(:parent => @root, :key => 'one', :value => '1')
       assert_difference 'Registry::Entry.count', -1 do
         delete :properties, :properties => one.id
@@ -195,9 +186,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'properties'  => []
       }
       assert_equal expected, JSON.parse(@response.body)
-      entry = Registry::Entry::Version.last
-      assert_equal user.class.name, entry.user_type
-      assert_equal user.id, entry.user_id
+      assert_equal id, Registry::Entry::Version.last.user_id
     end
   end
 
@@ -250,19 +239,18 @@ class Registry::RegistryControllerTest < ActionController::TestCase
  end
 
  test 'user configuration' do
-    user = OpenStruct.new(:id => 42)
     Registry.configure do |config|
-      config.user { user }
+      config.user_id { 42 }
     end
 
-    assert_equal user, @controller.send(:registry_user)
+    assert_equal 42, @controller.send(:registry_user_id)
 
     Registry.configure do |config|
-      config.user
+      config.user_id
     end
 
     assert_raise NoMethodError do
-      @controller.send(:registry_user)
+      @controller.send(:registry_user_id)
     end
  end
 

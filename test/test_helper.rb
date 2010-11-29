@@ -5,26 +5,14 @@ require 'ostruct'
 
 class ActiveSupport::TestCase
   
-  def with_login
-    user = OpenStruct.new(:destroyed? => false, :new_record? => false)
-
-    def user.id
-      42
-    end
-
-    def OpenStruct.base_class
-      self
-    end
-
+  def with_login(id)
     Registry.configure do |config|
-      config.user { user }
+      config.user_id { id }
     end
-
-    yield user
-
+    yield id
   ensure
     Registry.configure do |config|
-      config.user
+      config.user_id
     end
   end
 

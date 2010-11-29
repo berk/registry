@@ -11,16 +11,12 @@ class CreateRegistry < ActiveRecord::Migration
       t.string  :label
       t.string  :description
 
-      t.string  :user_type
       t.integer :user_id
 
       t.timestamps
     end
 
-# TODO: remove if unneeded
-#    add_index :registry_entries, [:env, :key]
     add_index :registry_entries, [:parent_id, :key]
-#    add_index :registry_entries, [:user_type, :user_id]
   end
 
   def self.down

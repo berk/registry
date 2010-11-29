@@ -26,18 +26,18 @@ module Registry
       Registry::RegistryController.send(:layout, value)
     end
 
-    # Method used by Registry UI to obtain the current user model.
+    # Method used by Registry UI to obtain the current user id.
     #
     # call-seq:
     #   Registry.configure do |config|
-    #     config.user { current_user }
+    #     config.user_id { current_user.id }
     #   end
-    def user(*args, &blk)
+    def user_id(*args, &blk)
       if block_given?
-        Registry::RegistryController.send(:define_method, :registry_user, &blk)
-        Registry::RegistryController.send(:private, :registry_user)
+        Registry::RegistryController.send(:define_method, :registry_user_id, &blk)
+        Registry::RegistryController.send(:private, :registry_user_id)
       else
-        Registry::RegistryController.send(:remove_method, :registry_user)
+        Registry::RegistryController.send(:remove_method, :registry_user_id)
       end
     end
 

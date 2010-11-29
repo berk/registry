@@ -10,16 +10,13 @@
 #  value       :string(255)
 #  label       :string(255)
 #  description :string(255)
-#  user_type   :string(255)
 #  user_id     :integer
 #  created_at  :datetime
 #  updated_at  :datetime
 #
 # Indexes
 #
-#  index_registry_entries_on_user_type_and_user_id  (user_type,user_id)
-#  index_registry_entries_on_parent_id              (parent_id)
-#  index_registry_entries_on_env_and_key            (env,key)
+#  index_registry_entries_on_parent_id_and_key      (parent_id, key)
 #
 
 require 'registry'
@@ -34,7 +31,6 @@ module Registry
 
     belongs_to :parent,     :class_name => 'Entry', :foreign_key => 'parent_id'
     has_many   :children,   :class_name => 'Entry', :foreign_key => 'parent_id', :order => 'key asc', :dependent => :destroy
-    belongs_to :user,       :polymorphic => true
 
     before_save :ensure_env
     before_save :normalize_key

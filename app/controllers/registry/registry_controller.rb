@@ -33,10 +33,10 @@ class Registry::RegistryController < ApplicationController
 
     if request.post?
       if params[:folder_id].blank? or params[:folder_id].index('xnode')
-        fld = Registry::Folder.create(params[:folder].merge(:parent => parent, :user => registry_user))
+        fld = Registry::Folder.create(params[:folder].merge(:parent => parent, :user_id => registry_user_id))
       else
         fld = Registry::Entry.find(params[:folder_id])
-        fld.update_attributes(params[:folder].merge(:user => registry_user))
+        fld.update_attributes(params[:folder].merge(:user_id => registry_user_id))
       end
     else
       fld = Registry::Entry.find_by_id(params[:folder_id]) unless params[:folder_id].blank?
@@ -52,14 +52,14 @@ class Registry::RegistryController < ApplicationController
 
     if request.post?
       if params[:prop_id].blank?
-        prop = Registry::Entry.create(params[:property].merge(:parent => parent, :user => registry_user))
+        prop = Registry::Entry.create(params[:property].merge(:parent => parent, :user_id => registry_user_id))
       else
         prop = Registry::Entry.find_by_id(params[:prop_id]) || Registry::Entry.new(:parent => parent)
         prop.update_attributes(:key          => params[:property][:key],
                                :label        => params[:property][:label],
                                :description  => params[:property][:description],
                                :value        => params[:property][:value],
-                               :user         => registry_user
+                               :user_id      => registry_user_id
                               )
       end
     else
@@ -84,13 +84,13 @@ class Registry::RegistryController < ApplicationController
 
     elsif request.put?
       item = Registry::Entry.find_by_id(params[:properties][:id])
-      item.update_attributes("value" => params[:properties][:value], :user => registry_user)
+      item.update_attributes("value" => params[:properties][:value], :user_id => registry_user_id)
       results[:properties] << item.to_grid_property_hash
       results[:total] = 1
 
     elsif request.delete?
       if node = Registry::Entry.find_by_id(params[:properties]) 
-        node.update_attributes(:user => registry_user)
+        node.update_attributes(:user_id => registry_user_id)
         node.destroy
       end
     end
