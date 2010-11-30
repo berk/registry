@@ -106,7 +106,9 @@ private
 
         def #{method}                                         # def foo
           ret = @hash['#{method}']                            #   ret = @hash['foo']
-          ret = self.class.new(ret) if ret.is_a?(Hash)        #   ret = self.class.new(ret) if ret.is_a?(Hash)
+          if ret.is_a?(Hash)                                  #   if ret.is_a?(Hash)
+            ret = @hash['#{method}'] = self.class.new(ret)    #     ret = @hash['foo'] = self.class.new(ret)
+          end                                                 #   end
           ret                                                 #   ret
         end                                                   # end
 
