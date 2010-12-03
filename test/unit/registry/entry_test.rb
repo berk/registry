@@ -107,7 +107,8 @@ module Registry
         3.14      => -3.14,
         :symbol   => :symbol,
         'time'    => Time.parse('1968-05-21 12:59:00'),
-        1 ... 10   => 1 .. 10,
+        1 ... 10  => 1 .. 10,
+        'array'   => ['string', false, -42, -3.14, :symbol, Time.parse('1968-05-21 12:59:00'), 1...10]
       }
 
       entries = {}

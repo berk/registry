@@ -162,9 +162,10 @@ module Registry
 
     def encode(value)
       case value
-        when TrueClass,FalseClass   then value ? 'true' : 'false'
-        when Symbol                 then ":#{value}"
+        when Array                  then "[#{value.map {|ii| encode(ii)}.join(',')}]"
         when Date,Time              then value.strftime("%Y-%m-%d %H:%M:%S %Z")
+        when Symbol                 then ":#{value}"
+        when TrueClass,FalseClass   then value ? 'true' : 'false'
         else                             value.to_s
       end
     end
@@ -172,13 +173,14 @@ module Registry
     def decode(value)
       return value unless value.is_a?(String)
 
-      return 'true' == value              if value =~ /^(true|false)$/i
-      return eval(value)                  if value =~ /\.\.|^:/
-      return Time.parse(value)            if value =~ /\d+-\d+-\d+ \d+:\d+:\d+/
-      return value.to_i                   if value =~ /^[-+]?[\d_,]+$/
-      return value.to_f                   if value =~ /^[-+]?[\d_,.]+$/
+      return value[1 .. -2].split(',').map { |ii| decode(ii) }  if value[0,1] == '[' and value[-1,1] == ']' # array
+      return 'true' == value                                    if value =~ /^(true|false)$/i               # boolean
+      return eval(value)                                        if value =~ /\.\.|^:/                       # symbol or range
+      return Time.parse(value)                                  if value =~ /\d+-\d+-\d+ \d+:\d+:\d+/       # date/time
+      return value.to_i                                         if value =~ /^[-+]?[\d_,]+$/                # int
+      return value.to_f                                         if value =~ /^[-+]?[\d_,.]+$/               # float
 
-      value
+      value                                                                                                 # string
     end
 
     def access_code
