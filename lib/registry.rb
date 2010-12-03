@@ -97,6 +97,24 @@ private
       @hash
     end
 
+    def with(config_hash, &block)
+      result = nil
+      orig_config = {}
+
+      begin
+        config_hash.each do |kk,vv|
+          orig_config[kk] = self.send(kk)
+          self.send("#{kk}=", vv)
+        end
+
+        result = block.call
+      ensure
+        orig_config.each { |kk,vv| self.send("#{kk}=", vv) }
+      end
+
+      result
+    end
+
   private
 
     def add_methods_for(method)

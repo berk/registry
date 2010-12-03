@@ -51,4 +51,23 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal true, Registry.api.enabled?
   end
 
+  test 'with' do
+     reg = {
+      'api' => {
+        'enabled' => true,
+        'limit'   => 1,
+      },
+    }
+    Registry::Entry.root.merge(reg)
+
+    assert_equal true, Registry.api.enabled?
+    assert_equal 1, Registry.api.limit
+    Registry.api.with(:enabled => false, :limit => 2) do
+      assert_equal false, Registry.api.enabled?
+    assert_equal 2, Registry.api.limit
+    end
+    assert_equal true, Registry.api.enabled?
+    assert_equal 1, Registry.api.limit
+  end
+
 end # class RegistryTest
