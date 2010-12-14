@@ -82,15 +82,6 @@ private
     end
 
     def method_missing(method, *args)
-      method = method.to_s
-      boolean_expected = ('?' == method[-1, 1])
-      method = method[0 .. -2] if boolean_expected
-      ret = @hash[method]
-      ret = RegistryWrapper.new(ret) if ret.is_a?(Hash) and not boolean_expected
-      boolean_expected ? !!ret : ret
-    end
-
-    def method_missing(method, *args)
       super
     rescue NoMethodError
       raise unless @hash.has_key?(method.to_s.sub(/[\?=]{0,1}$/, ''))
