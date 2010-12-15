@@ -76,6 +76,7 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal true, Registry.api.enabled?
     assert_equal 1, Registry.api.limit
     Registry.api.with(:enabled => false, :limit => 2) do
+      Registry.reset # should be prevented
       assert_equal false, Registry.api.enabled?
       assert_equal 2, Registry.api.limit
     end

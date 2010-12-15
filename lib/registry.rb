@@ -37,6 +37,7 @@ module Registry
   # This will force a reload next time it is accessed.
   #
   def self.reset
+    return if @prevent_reset
     @registry = nil
   end
 
@@ -73,6 +74,18 @@ module Registry
     Entry.import!(file, opts)
   end
 
+protected
+
+  # :nodoc:
+  def self.prevent_reset!
+    @prevent_reset = true
+  end
+
+  # :nodoc:
+  def self.allow_reset!
+    @prevent_reset = nil
+  end
+
 private
 
   class RegistryWrapper
@@ -103,8 +116,10 @@ private
           self.send("#{kk}=", vv)
         end
 
+        Registry.prevent_reset!
         result = block.call
       ensure
+        Registry.allow_reset!
         orig_config.each { |kk,vv| self.send("#{kk}=", vv) }
       end
 
