@@ -29,7 +29,7 @@ module Registry
   #   Registry.api.request_limit? # => 1
   #
   def self.method_missing(method, *args)
-    (@registry ||= RegistryWrapper.new(Entry.root.export)).send(method, *args)
+    (@registry ||= RegistryWrapper.new(Entry.root)).send(method, *args)
   end
 
   # Reset the registry.
@@ -90,20 +90,23 @@ private
 
   class RegistryWrapper
 
-    def initialize(hash)
-      @hash = hash
+    def initialize(entry)
+      @entry = entry
+      @hash = {}
     end
 
     def method_missing(method, *args)
       super
     rescue NoMethodError
-      raise unless @hash.has_key?(method.to_s.sub(/[\?=]{0,1}$/, ''))
+      method_name = method.to_s.sub(/[\?=]{0,1}$/, '')
+      raise unless entry = @entry.children.find_by_key(method_name)
+      @hash[method_name] = entry.folder? ? RegistryWrapper.new(entry) : entry.send(:decoded_value)
       add_methods_for(method)
       send(method, *args)
     end
 
     def to_hash
-      @hash
+      @entry.export(@hash)
     end
 
     def with(config_hash, &block)

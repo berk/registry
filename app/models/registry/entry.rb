@@ -158,6 +158,12 @@ module Registry
       end
     end
 
+  protected
+
+    def decoded_value
+      decode(value)
+    end
+
   private
 
     def encode(value)
