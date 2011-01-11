@@ -137,11 +137,7 @@ private
       self.class_eval %{
 
         def #{method}                                         # def foo
-          ret = @hash['#{method}']                            #   ret = @hash['foo']
-          if ret.is_a?(Hash)                                  #   if ret.is_a?(Hash)
-            ret = @hash['#{method}'] = self.class.new(ret)    #     ret = @hash['foo'] = self.class.new(ret)
-          end                                                 #   end
-          ret                                                 #   ret
+          @hash['#{method}']                                  #   @hash['foo']
         end                                                   # end
 
         def #{method}=(value)                                 # def foo=(value)
