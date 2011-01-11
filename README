@@ -29,6 +29,8 @@
       # The layout used by the registry UI
       config.layout = 'admin'
 
+      # user id to blame when updating entries
+      config.user_id = { current_user.id }
     end
 
 
@@ -74,14 +76,17 @@
     development:
       api_enabled:        true
       api_request_limit:  1
+      api_request_window: 1000
    
     test:
       api_enabled:        true
       api_request_limit:  1
+      api_request_window: 1000
    
     production:
       api_enabled:        false
       api_request_limit:  1
+      api_request_window: 1000
    
 
   in lib/tasks/my_tasks.rake
