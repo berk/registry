@@ -98,9 +98,9 @@ private
     def method_missing(method, *args)
       super
     rescue NoMethodError
-      method_name = method.to_s.sub(/[\?=]{0,1}$/, '')
-      raise unless entry = @entry.children.find_by_key(method_name)
-      @hash[method_name] = entry.folder? ? RegistryWrapper.new(entry) : entry.send(:decoded_value)
+      key = method.to_s.sub(/[\?=]{0,1}$/, '')
+      raise unless entry = @entry.children.find_by_key(key)
+      @hash[key] = entry.folder? ? RegistryWrapper.new(entry) : entry.send(:decoded_value)
       add_methods_for(method)
       send(method, *args)
     end
