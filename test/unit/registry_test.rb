@@ -3,7 +3,7 @@ require 'test/test_helper'
 class RegistryTest < ActiveSupport::TestCase
 
   def setup
-    Registry.reset
+    Registry.reset(true)
   end
 
   test 'method_missing' do

@@ -29,16 +29,17 @@ module Registry
   #   Registry.api.request_limit? # => 1
   #
   def self.method_missing(method, *args)
-    (@registry ||= RegistryWrapper.new(Entry.root)).send(method, *args)
+    (@registry ||= RegistryWrapper.new(Entry.root.cached_export)).send(method, *args)
   end
 
   # Reset the registry.
   #
   # This will force a reload next time it is accessed.
   #
-  def self.reset
+  def self.reset(clear_cache=nil)
     return if @prevent_reset
     @registry = nil
+    Entry.root.clear_cache if clear_cache
   end
 
   # Import registry values from yml file.
@@ -90,23 +91,20 @@ private
 
   class RegistryWrapper
 
-    def initialize(entry)
-      @entry = entry
-      @hash = {}
+    def initialize(hash)
+      @hash = hash.dup
     end
 
     def method_missing(method, *args)
       super
     rescue NoMethodError
-      key = method.to_s.sub(/[\?=]{0,1}$/, '')
-      raise unless entry = @entry.children.find_by_key(key)
-      @hash[key] = entry.folder? ? RegistryWrapper.new(entry) : entry.send(:decoded_value)
+      raise unless @hash.has_key?(method.to_s.sub(/[\?=]{0,1}$/, ''))
       add_methods_for(method)
       send(method, *args)
     end
 
     def to_hash
-      @entry.export(@hash)
+      @hash
     end
 
     def with(config_hash, &block)
@@ -137,7 +135,11 @@ private
       self.class_eval %{
 
         def #{method}                                         # def foo
-          @hash['#{method}']                                  #   @hash['foo']
+          ret = @hash['#{method}']                            #   ret = @hash['foo']
+          if ret.is_a?(Hash)                                  #   if ret.is_a?(Hash)
+            ret = @hash['#{method}'] = self.class.new(ret)    #     ret = @hash['foo'] = self.class.new(ret)
+          end                                                 #   end
+          ret                                                 #   ret
         end                                                   # end
 
         def #{method}=(value)                                 # def foo=(value)

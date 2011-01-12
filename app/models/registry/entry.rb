@@ -32,11 +32,7 @@ module Registry
     set_table_name :registry_entries
 
     belongs_to :parent,     :class_name => 'Entry', :foreign_key => 'parent_id'
-    has_many   :children,   :class_name => 'Entry', :foreign_key => 'parent_id', :order => 'key asc', :dependent => :destroy do
-      def find_by_key(key)
-        Rails.cache.fetch("#{proxy_owner.id},#{key}") { Entry.first(:conditions => {:parent_id => proxy_owner.id, :key => key}) }
-      end
-    end
+    has_many   :children,   :class_name => 'Entry', :foreign_key => 'parent_id', :order => 'key asc', :dependent => :destroy
 
     before_save :ensure_env
     before_save :normalize_key
@@ -148,6 +144,14 @@ module Registry
       hash
     end
 
+    def cached_export
+      Rails.cache.fetch(cache_key) { export }
+    end
+
+    def clear_cache
+      Rails.cache.delete(cache_key)
+    end
+
     def merge(hash, opts={})
       hash.each do |key, value|
         key = encode(key)
@@ -161,12 +165,6 @@ module Registry
           # don't overwrite
         end
       end
-    end
-
-  protected
-
-    def decoded_value
-      decode(value)
     end
 
   private
@@ -222,8 +220,8 @@ module Registry
       Registry::Entry::Version.first(:conditions => {:parent_id => id, :key => key}).nil?
     end
 
-    def clear_cache
-      Rails.cache.delete("#{parent.id},#{key}")
+    def cache_key
+      "#{env}-registry"
     end
 
   end # class Entry

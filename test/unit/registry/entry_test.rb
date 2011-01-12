@@ -95,14 +95,14 @@ module Registry
       end
     end
 
-    test 'child caching' do
-      Entry.root.create_property(:key => 'one', :value => 'one')
+    test 'cached_export' do
+      prop = Entry.root.create_property(:key => 'one', :value => 'one')
 
-      expected = Entry.root.children.find_by_key('one')
-      assert_equal expected, Rails.cache.read("#{Entry.root.id},one"), 'cache should be populated after find'
+      expected = Entry.root.cached_export
+      assert_equal expected, Rails.cache.read(Entry.root.send(:cache_key)), 'cache should be populated'
 
-      Entry.find(expected.id).update_attributes(:value => 'two')
-      assert_equal nil, Rails.cache.read("#{Entry.root.id},one"), 'cache should be empty after update'
+      prop.update_attributes(:value => 'two')
+      assert_equal nil, Rails.cache.read(Entry.root.send(:cache_key)), 'cache should be cleared after update'
     end
 
   private
