@@ -95,6 +95,16 @@ module Registry
       end
     end
 
+    test 'child caching' do
+      Entry.root.create_property(:key => 'one', :value => 'one')
+
+      expected = Entry.root.children.find_by_key('one')
+      assert_equal expected, Rails.cache.read("#{Entry.root.id},one"), 'cache should be populated after find'
+
+      Entry.find(expected.id).update_attributes(:value => 'two')
+      assert_equal nil, Rails.cache.read("#{Entry.root.id},one"), 'cache should be empty after update'
+    end
+
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)
