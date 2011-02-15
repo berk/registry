@@ -65,13 +65,20 @@ module Registry
   #---
   # call-seq:
   #   Registry.import("#{Rails.root}/config/defaults.yml")
-  #   Registry.import("#{Rails.root}/config/defaults.yml", :purge => true)  # purge registry before import
+  #   Registry.import("#{Rails.root}/config/defaults.yml", :purge => true)    # purge registry before import
+  #   Registry.import("#{Rails.root}/config/defaults.yml", :testing => true)  # don't save registry values
   #
   def self.import(file, opts={})
+    if opts[:testing]
+      @registry = RegistryWrapper.new(YAML.load_file(file)['test'])
+      return
+    end
+
     if opts[:purge]
       Entry.delete_all
       Entry::Version.delete_all
     end
+
     Entry.import!(file, opts)
   end
 

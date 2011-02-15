@@ -64,6 +64,20 @@ class RegistryTest < ActiveSupport::TestCase
     assert_not_equal orig_root_id, Registry::Entry.root.id
   end
 
+  test 'import with testing' do
+    File.open('/tmp/foo.yml', 'w+') do |file|
+      reg = {
+        'test' => {'api' => {'enabled' => true}}
+      }
+      YAML.dump(reg, file)
+    end
+
+    assert_no_difference 'Registry::Entry.count' do
+      Registry.import('/tmp/foo.yml', :testing => true)
+    end
+    assert_equal true, Registry.api.enabled?
+  end
+
   test 'with' do
      reg = {
       'api' => {
