@@ -70,7 +70,7 @@ module Registry
   #
   def self.import(file, opts={})
     if opts[:testing]
-      @registry = RegistryWrapper.new(YAML.load_file(file)['test'])
+      @registry = RegistryWrapper.new(YAML.load_file(file)[Rails.env.to_s])
       return
     end
 
