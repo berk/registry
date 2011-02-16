@@ -29,7 +29,7 @@ module Registry
   #   Registry.api.request_limit? # => 1
   #
   def self.method_missing(method, *args)
-    (@registry ||= RegistryWrapper.new(Entry.root.cached_export)).send(method, *args)
+    (@registry ||= RegistryWrapper.new(Rails.cache.fetch(cache_key){Entry.root.export})).send(method, *args)
   end
 
   # Reset the registry.
@@ -39,7 +39,7 @@ module Registry
   def self.reset(clear_cache=nil)
     return if @prevent_reset
     @registry = nil
-    Entry.root.clear_cache if clear_cache
+    self.clear_cache if clear_cache
   end
 
   # Import registry values from yml file.
@@ -92,6 +92,16 @@ protected
   # :nodoc:
   def self.allow_reset!
     @prevent_reset = nil
+  end
+
+  # :nodoc:
+  def self.cache_key(env=Rails.env.to_s)
+    "#{env}-registry"
+  end
+
+  # :nodoc:
+  def self.clear_cache(env=Rails.env.to_s)
+    Rails.cache.delete(cache_key(env))
   end
 
 private

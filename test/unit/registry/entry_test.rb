@@ -95,16 +95,6 @@ module Registry
       end
     end
 
-    test 'cached_export' do
-      prop = Entry.root.create_property(:key => 'one', :value => 'one')
-
-      expected = Entry.root.cached_export
-      assert_equal expected, Rails.cache.read(Entry.root.send(:cache_key)), 'cache should be populated'
-
-      prop.update_attributes(:value => 'two')
-      assert_equal nil, Rails.cache.read(Entry.root.send(:cache_key)), 'cache should be cleared after update'
-    end
-
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)

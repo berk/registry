@@ -144,14 +144,6 @@ module Registry
       hash
     end
 
-    def cached_export
-      Rails.cache.fetch(cache_key) { export }
-    end
-
-    def clear_cache
-      Rails.cache.delete(cache_key)
-    end
-
     def merge(hash, opts={})
       hash.each do |key, value|
         key = encode(key)
@@ -220,8 +212,8 @@ module Registry
       Registry::Entry::Version.first(:conditions => {:parent_id => id, :key => key}).nil?
     end
 
-    def cache_key
-      "#{env}-registry"
+    def clear_cache
+      Registry.clear_cache(env)
     end
 
   end # class Entry
