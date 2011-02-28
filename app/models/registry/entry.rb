@@ -44,7 +44,7 @@ module Registry
     DEFAULT_YML_LOCATION = "#{Rails.root}/config/registry.yml"
 
     def self.environments
-      connection.select_values("SELECT DISTINCT env FROM #{table_name}")
+      connection.select_values("SELECT DISTINCT env FROM #{table_name} WHERE parent_id IS NULL")
     end
 
     def self.export!(file_path = DEFAULT_YML_LOCATION)
@@ -130,15 +130,18 @@ module Registry
       }
     end
 
-    def export(hash={})
+    def export(hash={}, entries=nil)
+      entries ||= Entry.all(:conditions => ['env = ? and id != ?', env, id])
+
+      properties, entries = entries.partition {|entry| entry.parent_id == id && !entry.folder?}
       properties.each do |p|
         hash[decode(p.key)] = decode(p.value)
       end
 
+      folders, entries = entries.partition {|entry| entry.parent_id == id && entry.folder?}
       folders.each do |f|
-        next if f.children.size == 0
         hash[f.key] = {}
-        f.export(hash[f.key])
+        f.export(hash[f.key], entries)
       end
 
       hash
