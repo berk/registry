@@ -98,4 +98,21 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 1, Registry.api.limit
   end
 
+  test 'with preserves prevent_reset' do
+     reg = {
+      'api' => {
+        'enabled' => true,
+      },
+    }
+    Registry::Entry.root.merge(reg)
+
+    assert_equal nil, Registry.prevent_reset?
+    Registry.prevent_reset!
+    Registry.api.with(:enabled => true) do
+      # nothing
+    end
+    assert_equal true, Registry.prevent_reset?
+  end
+
+
 end # class RegistryTest

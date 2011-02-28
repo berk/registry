@@ -37,7 +37,7 @@ module Registry
   # This will force a reload next time it is accessed.
   #
   def self.reset(clear_cache=nil)
-    return if @prevent_reset
+    return if prevent_reset?
     @registry = nil
     self.clear_cache if clear_cache
   end
@@ -80,6 +80,10 @@ module Registry
     end
 
     Entry.import!(file, opts)
+  end
+
+  def self.prevent_reset?
+    @prevent_reset
   end
 
 protected
@@ -128,6 +132,7 @@ private
       result = nil
       orig_config = {}
 
+      @saved_prevent_reset = Registry.prevent_reset?
       begin
         config_hash.each do |kk,vv|
           orig_config[kk] = self.send(kk)
@@ -137,7 +142,7 @@ private
         Registry.prevent_reset!
         result = block.call
       ensure
-        Registry.allow_reset!
+        Registry.allow_reset! unless @saved_prevent_reset
         orig_config.each { |kk,vv| self.send("#{kk}=", vv) }
       end
 
