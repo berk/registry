@@ -39,6 +39,8 @@ module Registry
     before_save :normalize_value
     after_update :clear_cache
 
+    before_destroy :log_deletion
+
     ROOT_ACCESS_KEY      = 'root'
     ROOT_LABEL           = 'Configuration Schema'
     DEFAULT_YML_LOCATION = "#{Rails.root}/config/registry.yml"
@@ -217,6 +219,10 @@ module Registry
 
     def clear_cache
       Registry.clear_cache(env)
+    end
+
+    def log_deletion
+      update_attributes(:description => '*** entry deleted ***')
     end
 
   end # class Entry
