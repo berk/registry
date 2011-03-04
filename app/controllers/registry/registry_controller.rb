@@ -105,7 +105,7 @@ class Registry::RegistryController < ApplicationController
     @revisions.each do |revision|
       results[:revisions] << {
         'id'      => revision.id.to_s,
-        'label'   => revision.label.to_s,
+        'label'   => (revision.label.blank? ? revision.key : revision.label).to_s,
         'value'   => revision.value.to_s,
         'user'    => registry_user_name(revision.user_id),
         'updated' => revision.updated_at.in_time_zone.to_s,
