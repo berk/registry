@@ -98,6 +98,24 @@ class Registry::RegistryController < ApplicationController
     render :text => results.to_json
   end
 
+  def revisions
+    results = {:success => true, :revisions => []}
+
+    @revisions = Registry::Entry::Version.all(:conditions => ['entry_id = ? OR parent_id = ?', params[:id], params[:id]], :order => 'id DESC')
+    @revisions.each do |revision|
+      results[:revisions] << {
+        'id'      => revision.id.to_s,
+        'label'   => revision.label.to_s,
+        'value'   => revision.value.to_s,
+        'user'    => registry_user_name(revision.user_id),
+        'updated' => revision.updated_at.in_time_zone.to_s,
+        'notes'   => revision.notes.to_s,
+      }
+    end
+
+    render :text => results.to_json
+  end
+
   def export
     Registry::Entry.export!('/tmp/registry.yml')
     send_file('/tmp/registry.yml', :type=>'text/yml', :filename => 'registry.yml')
@@ -112,6 +130,14 @@ private
 
   def parent
     @parent ||= Registry::Entry.find_by_id(params[:parent_id]) || Registry::Entry.root
+  end
+
+  def registry_user_id
+    -1
+  end
+
+  def registry_user_name(id)
+    id.to_s
   end
 
 end

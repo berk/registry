@@ -41,5 +41,20 @@ module Registry
       end
     end
 
+    # Method used by Registry UI to obtain a name for a given user id.
+    #
+    # call-seq:
+    #   Registry.configure do |config|
+    #     config.user_name { |id| User.find(id).name }
+    #   end
+    def user_name(&blk)
+      if block_given?
+        Registry::RegistryController.send(:define_method, :registry_user_name, &blk)
+        Registry::RegistryController.send(:private, :registry_user_name)
+      else
+        Registry::RegistryController.send(:remove_method, :registry_user_name)
+      end
+    end
+
   end
 end # module Registry

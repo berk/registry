@@ -149,8 +149,8 @@ class Registry::RegistryControllerTest < ActionController::TestCase
       'total'       => 2,
       'success'     => true,
       'properties'  => [
-        {'id' => one.id.to_s, 'key' => 'one', 'value' => '1', 'label' => 'one', 'description' => '', 'access_code' => 'Registry.one'},
-        {'id' => two.id.to_s, 'key' => 'two', 'value' => '2', 'label' => 'two', 'description' => '', 'access_code' => 'Registry.two'},
+        {'id' => one.id.to_s, 'key' => 'one', 'value' => '1', 'label' => 'one', 'description' => '', 'access_code' => 'Registry.one', 'notes' => ''},
+        {'id' => two.id.to_s, 'key' => 'two', 'value' => '2', 'label' => 'two', 'description' => '', 'access_code' => 'Registry.two', 'notes' => ''},
       ]
     }
     assert_equal expected, JSON.parse(@response.body)
@@ -165,7 +165,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'total'       => 1,
         'success'     => true,
         'properties'  => [
-          {'id' => one.id.to_s, 'key' => 'one', 'value' => '2', 'label' => 'one', 'description' => '', 'access_code' => 'Registry.one'},
+          {'id' => one.id.to_s, 'key' => 'one', 'value' => '2', 'label' => 'one', 'description' => '', 'access_code' => 'Registry.one', 'notes' => ''},
         ]
       }
       assert_equal expected, JSON.parse(@response.body)
@@ -189,6 +189,27 @@ class Registry::RegistryControllerTest < ActionController::TestCase
       assert_equal id, Registry::Entry::Version.last.user_id
     end
   end
+
+  test 'revisions get' do
+    one = Registry::Entry.create!(:parent => @root, :key => 'one', :label => 'one', :value => '1')
+    one.update_attributes(:value => 2)
+
+    first = one.versions.first
+    second = one.versions.last
+
+    get :revisions, :id => one.id
+    assert_response :success
+
+    expected = {
+      'success'     => true,
+      'revisions'  => [
+        {'id' => second.id.to_s, 'value' => '2', 'label' => 'one', 'updated' => second.updated_at.to_s, 'notes' => '', 'user' => ''},
+        {'id' => first.id.to_s,  'value' => '1', 'label' => 'one', 'updated' => first.updated_at.to_s, 'notes' => '', 'user' => ''},
+      ]
+    }
+    assert_equal expected, JSON.parse(@response.body)
+  end
+
 
   test 'export' do
     one = Registry::Entry.create!(:parent => @root, :key => 'one', :value => '1')

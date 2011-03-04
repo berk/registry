@@ -1,0 +1,81 @@
+var revisionsPanel = new Ext.grid.EditorGridPanel(
+  {
+    store: new Ext.data.Store({
+      restful: true,
+      proxy: new Ext.data.HttpProxy({
+         url: '<%= url_for :action => :revisions %>',
+      }),
+      reader: new Ext.data.JsonReader({
+        idProperty: 'id',
+        root: 'revisions',
+        fields: [{name: 'id', mapping: 'id'},
+                 {name: 'label', mapping: 'label'},
+                 {name: 'value', mapping: 'value'},
+                 {name: 'user', mapping: 'user'},
+                 {name: 'updated', mapping: 'updated'},
+                 {name: 'notes', mapping: 'notes'},
+                ]
+      }),
+    }),
+    cm: new Ext.grid.ColumnModel([
+      {
+         header: 'Label',
+         dataIndex: 'label',
+         sortable: true,
+      },{
+         header: 'Value',
+         dataIndex: 'value',
+      },{
+         header: 'Updater',
+         dataIndex: 'user',
+      },{
+         header: 'Updated',
+         dataIndex: 'updated',
+         sortable: true,
+         width: 200,
+      },{
+         header: 'Notes',
+         dataIndex: 'notes',
+         width: 200,
+      }
+    ]),
+    autoExpandColumn: true,
+    collapsible: false,
+    region: 'center',
+    margins: '2 2 2 0',
+    viewConfig: {
+      forceFit: true
+    },
+  }
+);
+
+var revisionsWindow = new Ext.Window({
+  layout:'fit',
+  title: 'Revisions',
+  width: 500,
+  height: 200,
+  modal: true,
+  closeAction: 'hide', 
+  plain: true,
+
+  items: [revisionsPanel],
+
+  buttons: [
+    {
+      text: 'Ok',
+      handler: function(){
+        revisionsWindow.hide();
+      }
+    }
+  ]
+});    
+
+function showRevisions(id) {
+  revisionsWindow.show(this);
+  revisionsPanel.getStore().load({
+    url:'<%= url_for :action => 'revisions' %>',
+    params: {id: id}, 
+    method:'GET', 
+    waitMsg:'Loading...'
+  });
+}

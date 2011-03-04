@@ -40,7 +40,17 @@ var gridToolbar = new Ext.Toolbar({
          grid.store.remove(item);
          gridToolbar.items.get("edit_property_button").disable();
          gridToolbar.items.get("delete_property_button").disable();
+         gridToolbar.items.get("revision_property_button").disable();
       }
+    }, '-', {
+      text: 'Revisions',
+      id: 'revision_property_button',
+      disabled: true,
+      handler: function(){
+        item = grid.getSelectionModel().getSelected();
+        if (!item) return false;
+        showRevisions(item.id);
+      },
     }]
 });
 
@@ -73,6 +83,7 @@ var grid = new Ext.grid.EditorGridPanel({
       rowclick: function(grid, rowIndex, e) {
         gridToolbar.items.get("edit_property_button").enable();
         gridToolbar.items.get("delete_property_button").enable();
+        gridToolbar.items.get("revision_property_button").enable();
       }, 
       celldblclick: function(grid, rowIndex, columnIndex, e) {
         if (columnIndex == 0) {

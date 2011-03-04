@@ -81,9 +81,8 @@ module Registry
       end
 
       version = Registry::Entry::Version.last
-      assert_match 'deleted', version.description
+      assert_match 'deleted', version.notes
     end
-
 
     test 'skip_already_deleted prevents property creation if deleted' do
       Entry.root.create_property(:key => 'one', :value => 'one').destroy

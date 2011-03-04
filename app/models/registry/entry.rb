@@ -120,6 +120,7 @@ module Registry
         'label'        => (label.blank? ? key : label),
         'description'  => description.to_s,
         'access_code'  => access_code,
+        'notes'        => notes.to_s,
       }
     end
 
@@ -222,7 +223,7 @@ module Registry
     end
 
     def log_deletion
-      update_attributes(:description => '*** entry deleted ***')
+      update_attributes(:notes => '*** entry deleted ***')
     end
 
   end # class Entry

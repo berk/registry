@@ -2,7 +2,7 @@ var lastEditedNode = null;
 
 var treeToolbar = new Ext.Toolbar({
     items:[{
-        text: '+ Add',
+        text: 'Add',
         handler: addFolder,
     }, '-', {
         id: 'edit_folder_button',
@@ -11,7 +11,7 @@ var treeToolbar = new Ext.Toolbar({
         disabled: true
     }, '-', {
         id: 'delete_folder_button',
-        text: '- Delete',
+        text: 'Delete',
         disabled: true,
         handler: function(){
             lastEditedNode = tree.getSelectionModel().getSelectedNode();
@@ -34,7 +34,17 @@ var treeToolbar = new Ext.Toolbar({
 
             treeToolbar.items.get("edit_folder_button").disable();
             treeToolbar.items.get("delete_folder_button").disable();
+            treeToolbar.items.get("revisions_folder_button").disable();
         }
+    }, '-', {
+        id: 'revisions_folder_button',
+        text: 'Revisions',
+        disabled: true,
+        handler: function(){
+          selectedNode = tree.getSelectionModel().getSelectedNode();
+          if (!selectedNode) return false;
+          showRevisions(selectedNode.attributes.id);
+        },
     }, '->', {
         text: 'Import',
         handler: function() {
@@ -68,7 +78,7 @@ var tree = new Ext.tree.TreePanel({
 
      // layout
      region:'west',
-     width:300,
+     width: 320,
      minSize: 100,
      maxSize: 550,
      split:true,
@@ -103,6 +113,7 @@ function selectFolder(node) {
   gridDataStore.reload();
   gridToolbar.items.get("edit_property_button").disable();
   gridToolbar.items.get("delete_property_button").disable();
+  gridToolbar.items.get("revision_property_button").disable();
 
   if (node != tree.getRootNode()) {
     treeToolbar.items.get("edit_folder_button").enable();
@@ -111,4 +122,5 @@ function selectFolder(node) {
     treeToolbar.items.get("edit_folder_button").disable();
     treeToolbar.items.get("delete_folder_button").disable();
   }
+  treeToolbar.items.get("revisions_folder_button").enable();
 }
