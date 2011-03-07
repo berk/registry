@@ -37,7 +37,9 @@ module Registry
     before_save :ensure_env
     before_save :normalize_key
     before_save :normalize_value
-    after_update :clear_cache
+
+    # after_update caused intermittent cache clearing
+    after_save  :clear_cache
 
     before_destroy :log_deletion
 
