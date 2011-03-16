@@ -184,12 +184,21 @@ module Registry
 
       return value[1 .. -2].split(',').map { |ii| decode(ii) }  if value[0,1] == '[' and value[-1,1] == ']' # array
       return 'true' == value                                    if value =~ /^(true|false)$/i               # boolean
-      return eval(value)                                        if value =~ /\.\.|^:/                       # symbol or range
+      return eval(value)                                        if value =~ /^:/                            # symbol
+      return decode_range(value)                                if value =~ /\.\./                          # range
       return Time.parse(value)                                  if value =~ /\d+-\d+-\d+ \d+:\d+:\d+/       # date/time
       return value.to_i                                         if value =~ /^[-+]?[\d_,]+$/                # int
       return value.to_f                                         if value =~ /^[-+]?[\d_,.]+$/               # float
 
       value                                                                                                 # string
+    end
+
+    def decode_range(value)
+      eval(value)
+    rescue SyntaxError => ex
+      raise ex unless ex.message =~ /octal/
+      from, range, to = value.match(/(.*)\s*(\.\.\.?)\s*(.*)/).to_a[1 .. -1]
+      eval("#{from.to_i} #{range} #{to.to_i}")
     end
 
     def access_code

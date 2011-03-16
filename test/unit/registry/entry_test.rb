@@ -109,6 +109,13 @@ module Registry
       end
     end
 
+    test 'decode' do
+      entry = Registry::Entry.new
+      assert_equal :foo, entry.send(:decode, ':foo')
+      assert_equal 0..9, entry.send(:decode, '0..9')
+      assert_equal 0..9, entry.send(:decode, '00..09')
+    end
+
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)
