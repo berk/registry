@@ -96,4 +96,8 @@
       Registry.import("#{Rails.root}/config/registry.yml")
     end
 
+  ---
 
+  You can update the registry via console.
+
+  Registry.api.enabled = false

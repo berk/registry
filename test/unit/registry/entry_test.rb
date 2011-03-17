@@ -116,6 +116,13 @@ module Registry
       assert_equal 0..9, entry.send(:decode, '00..09')
     end
 
+    test 'child' do
+      create_entries
+      assert_equal true, Entry.root.child('folder1').folder?
+      assert_equal true, Entry.root.child('/folder1').folder?, 'child method should handle leading /'
+      assert_equal ':symbol', Entry.root.child('folder2/:symbol').value
+    end
+
   private
 
     def create_entries(envs=nil, folders=nil, values=nil)

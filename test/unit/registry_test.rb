@@ -93,6 +93,8 @@ class RegistryTest < ActiveSupport::TestCase
       Registry.reset # should be prevented
       assert_equal false, Registry.api.enabled?
       assert_equal 2, Registry.api.limit
+      assert_equal 'true', Registry::Entry.root.child('api/enabled').value, 'with should not update table'
+      assert_equal '1', Registry::Entry.root.child('api/limit').value, 'with should not update table'
     end
     assert_equal true, Registry.api.enabled?
     assert_equal 1, Registry.api.limit
@@ -114,5 +116,16 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal true, Registry.prevent_reset?
   end
 
+  test 'registry updates via console' do
+    reg = {
+      'api' => {
+        'enabled' => true,
+      },
+    }
+    Registry::Entry.root.merge(reg)
+
+    Registry.api.enabled = false
+    assert_equal 'false', Registry::Entry.root.child('api/enabled').value
+  end
 
 end # class RegistryTest

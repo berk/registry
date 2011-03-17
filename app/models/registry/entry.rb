@@ -84,6 +84,10 @@ module Registry
       nodes
     end
 
+    def child(path)
+      path.split('/').reject{|ii| ii.blank?}.inject(self) {|parent, key| parent.children.find_by_key(key)}
+    end
+
     def folder?
       false
     end

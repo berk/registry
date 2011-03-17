@@ -112,7 +112,8 @@ private
 
   class RegistryWrapper
 
-    def initialize(hash)
+    def initialize(hash, parent_path='')
+      @parent_path = parent_path
       @hash = hash.dup
     end
 
@@ -136,14 +137,14 @@ private
       begin
         config_hash.each do |kk,vv|
           orig_config[kk] = self.send(kk)
-          self.send("#{kk}=", vv)
+          self.send("#{kk}=", vv, false)
         end
 
         Registry.prevent_reset!
         result = block.call
       ensure
         Registry.allow_reset! unless @saved_prevent_reset
-        orig_config.each { |kk,vv| self.send("#{kk}=", vv) }
+        orig_config.each { |kk,vv| self.send("#{kk}=", vv, false) }
       end
 
       result
@@ -156,23 +157,29 @@ private
 
       self.class_eval %{
 
-        def #{method}                                         # def foo
-          ret = @hash['#{method}']                            #   ret = @hash['foo']
-          if ret.is_a?(Hash)                                  #   if ret.is_a?(Hash)
-            ret = @hash['#{method}'] = self.class.new(ret)    #     ret = @hash['foo'] = self.class.new(ret)
-          end                                                 #   end
-          ret                                                 #   ret
-        end                                                   # end
+        def #{method}                                               # def foo
+          ret = @hash['#{method}']                                  #   ret = @hash['foo']
+          if ret.is_a?(Hash)                                        #   if ret.is_a?(Hash)
+            path = @parent_path + '/#{method}'                      #     path = @parent_path + '/foo'
+            ret = @hash['#{method}'] = self.class.new(ret, path)    #     ret = @hash['foo'] = self.class.new(ret, path)
+          end                                                       #   end
+          ret                                                       #   ret
+        end                                                         # end
 
-        def #{method}=(value)                                 # def foo=(value)
-          @hash['#{method}'] = value                          #   @hash['foo'] = value
-        end                                                   # end
+        def #{method}=(value, save=true)                            # def foo=(value, save=true)
+          @hash['#{method}'] = value                                #   @hash['foo'] = value
+          update('#{method}', value) if save                        #   update('foo', value) if save
+        end                                                         # end
 
-        def #{method}?                                        # def foo?
-          !!@hash['#{method}']                                #   !!@hash['foo']
-        end                                                   # end
+        def #{method}?                                              # def foo?
+          !!@hash['#{method}']                                      #   !!@hash['foo']
+        end                                                         # end
 
       }, __FILE__, __LINE__
+    end
+
+    def update(key, value)
+      Entry.root.child(@parent_path + '/' + key).update_attributes(:value => value)
     end
 
   end
