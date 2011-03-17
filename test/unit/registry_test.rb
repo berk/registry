@@ -128,4 +128,16 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 'false', Registry::Entry.root.child('api/enabled').value
   end
 
+  test 'registry versions via console' do
+    reg = {
+      'api' => {
+        'enabled' => true,
+      },
+    }
+    Registry::Entry.root.merge(reg)
+    assert_equal 1, Registry.versions('api/enabled').size
+    Registry.api.enabled = false
+    assert_equal 2, Registry.versions('api/enabled').size
+ end
+
 end # class RegistryTest

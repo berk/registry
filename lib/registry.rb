@@ -86,6 +86,16 @@ module Registry
     @prevent_reset
   end
 
+  # Return changes made at the end of a path
+  #
+  # ---
+  # call-sql:
+  #   Registry.versions('api/enabled')       #=> changes made to enabled flag.
+  #   Registry.versions('api/enabled', 'qa') #=> changes made to enabled flag in QA environment.
+  def self.versions(path, env=Rails.env)
+    Entry.root(env).child(path).versions
+  end
+
 protected
 
   # :nodoc:
