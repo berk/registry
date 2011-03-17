@@ -85,7 +85,9 @@ module Registry
     end
 
     def child(path)
-      path.split('/').reject{|ii| ii.blank?}.inject(self) {|parent, key| parent.children.find_by_key(key)}
+      path.split('/').reject{|ii| ii.blank?}.inject(self) do |parent, key|
+        parent.children.find_by_key(key).tap {|ii| raise ArgumentError.new("#{parent.key} has no child named #{key}") if ii.nil?}
+      end
     end
 
     def folder?

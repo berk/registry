@@ -121,6 +121,9 @@ module Registry
       assert_equal true, Entry.root.child('folder1').folder?
       assert_equal true, Entry.root.child('/folder1').folder?, 'child method should handle leading /'
       assert_equal ':symbol', Entry.root.child('folder2/:symbol').value
+      assert_raise ArgumentError do
+        Entry.root.child('foo/bar') 
+      end
     end
 
   private
