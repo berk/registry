@@ -14,4 +14,15 @@ namespace :registry do
     sh "rcov --rails -t --sort coverage -o public/coverage -x '/usr/local/rvm/gems/ree-1.8.7-2010.02/gems' #{files}"
   end
 
+  desc 'Set a registry value (eg api.enabled=true)'
+  task :set => [:environment] do
+    ARGV.shift
+    ARGV.each do |key_value|
+      key, value = key_value.split('=')
+      key.gsub!('.','/')
+      puts "Setting #{key} to #{value}"
+      Registry::Entry.root.child(key).update_attribute(:value => value)
+    end
+  end
+
 end
