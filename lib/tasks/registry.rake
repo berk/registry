@@ -21,7 +21,7 @@ namespace :registry do
       key, value = key_value.split('=')
       key.gsub!('.','/')
       puts "Setting #{key} to #{value}"
-      Registry::Entry.root.child(key).update_attribute(:value => value)
+      Registry::Entry.root.child(key).update_attributes(:value => value)
     end
   end
 
