@@ -109,6 +109,15 @@ module Registry
       end
     end
 
+    test 'merge with delete flag' do
+      Entry.root.merge('keep' => {:keep => true, :lose => false}, :keep => 'keep', 'lose' => {:lose => true}, :lose => 'lose')
+
+      Entry.root.merge({'keep' => {:keep => false}, :keep => 'kept'}, :delete => true)
+
+      expected = {'keep' => {:keep => true}, :keep => 'keep'}
+      assert_equal expected, Entry.root.export
+    end
+
     test 'decode' do
       entry = Registry::Entry.new
       assert_equal :foo, entry.send(:decode, ':foo')

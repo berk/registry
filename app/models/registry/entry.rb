@@ -282,6 +282,13 @@ module Registry
           # don't overwrite
         end
       end
+
+      if opts[:delete]
+        keys = hash.keys.map {|ii| encode(ii)}
+        children.each do |child|
+          child.delete unless keys.include?(child.key)
+        end
+      end
     end
 
   private
