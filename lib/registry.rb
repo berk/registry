@@ -36,6 +36,10 @@ module Registry
   #
   # This will force a reload next time it is accessed.
   #
+  # ==== Parameters
+  #
+  # * +clear_cache+ - Optional, whether to clear the Rails cache after reset.
+  #
   def self.reset(clear_cache=nil)
     return if prevent_reset?
     @registry = nil
@@ -44,9 +48,20 @@ module Registry
 
   # Import registry values from yml file.
   #
-  # File should be in the following format:
+  # ==== Prameters
   #
-  #---
+  # * +file+ - Name of yml file.
+  # * +opts+ - Additional options see examples for usage.
+  #
+  # ==== Options
+  #
+  # * <tt>:purge</tt> - if true, deletes all entries before import.
+  # * <tt>:testing</tt> - if true, don't save registry values.
+  #
+  # ==== File Format
+  #
+  # yml File should be in the following format:
+  #
   # development:
   #   api:
   #     enabled:        true
@@ -62,11 +77,10 @@ module Registry
   #     enabled:        false
   #     request_limit:  1
   #
-  #---
   # call-seq:
   #   Registry.import("#{Rails.root}/config/defaults.yml")
-  #   Registry.import("#{Rails.root}/config/defaults.yml", :purge => true)    # purge registry before import
-  #   Registry.import("#{Rails.root}/config/defaults.yml", :testing => true)  # don't save registry values
+  #   Registry.import("#{Rails.root}/config/defaults.yml", :purge => true)
+  #   Registry.import("#{Rails.root}/config/defaults.yml", :testing => true)
   #
   def self.import(file, opts={})
     if opts[:testing]
@@ -82,14 +96,19 @@ module Registry
     Entry.import!(file, opts)
   end
 
+  # :nodoc:
   def self.prevent_reset?
     @prevent_reset
   end
 
   # Return changes made at the end of a path
   #
-  # ---
-  # call-sql:
+  # ==== Parameters
+  #
+  # * +path+ - path to child.
+  # * +env+  - Optional, Rails environment.
+  #
+  # call-seq:
   #   Registry.versions('api/enabled')       #=> changes made to enabled flag.
   #   Registry.versions('api/enabled', 'qa') #=> changes made to enabled flag in QA environment.
   def self.versions(path, env=Rails.env)

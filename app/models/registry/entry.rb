@@ -47,10 +47,22 @@ module Registry
     ROOT_LABEL           = 'Configuration Schema'
     DEFAULT_YML_LOCATION = "#{Rails.root}/config/registry.yml"
 
+    # Returns the list of environments defined in the registry
+    #
+    # call-seq:
+    #   Registry::Entry.environments #=> ['development', 'test', 'qa', 'stage', 'production']
     def self.environments
       connection.select_values("SELECT DISTINCT env FROM #{table_name} WHERE parent_id IS NULL")
     end
 
+    # Export the registry to a YAML file and return the hash.
+    #
+    # ==== Parameters
+    #
+    # * +file_path+ - Optional path to file.  If nil no file is written.
+    #
+    # call-seq:
+    #   Registry::Entry.export! #=> {'development' => {...}, 'test' => {...}, ...}
     def self.export!(file_path = DEFAULT_YML_LOCATION)
       yaml_data = {}
 
@@ -68,48 +80,120 @@ module Registry
       yaml_data
     end
 
+    # Import registry from a YAML file.
+    #
+    # ==== Parameters
+    #
+    # * +file_path+ - Path to yml file.
+    # * +opts+      - Optional, merge options (see documentation for <tt>merge</tt> method)
+    #
+    # ==== File Format
+    #
+    # yml File should be in the following format:
+    #
+    # development:
+    #   api:
+    #     enabled:        true
+    #     request_limit:  1
+    #
+    # test:
+    #   api:
+    #     enabled:        true
+    #     request_limit:  1
+    #
+    # production:
+    #   api:
+    #     enabled:        false
+    #     request_limit:  1
+    #
+    #
+    # call-seq
+    #   Registry::Entry.import!('/path/to/my.yml')
     def self.import!(file_path = DEFAULT_YML_LOCATION, opts={})
       YAML.load_file( file_path ).each do |env, entries|
         root(env).merge(entries, opts)
       end
     end
 
-    def self.root(env = Rails.env)
+    # Return the root entry for an environment.
+    #
+    # ==== Parameters
+    #
+    # * +env+ - Optional environment (defaults to Rails.env)
+    #
+    # call-seq:
+    #   Registry::Entry.root
+    def self.root(env=Rails.env)
       first(:conditions => ['parent_id IS NULL AND env = ?', env]) || Folder.create(:env => env, :key => ROOT_ACCESS_KEY, :label => ROOT_LABEL)
     end
 
+    # Return an array ancestor entries.
     def ancestors
       node, nodes = self, []
       nodes << node = node.parent while node.parent
       nodes
     end
 
+    # Return the child entry for a path.
+    #
+    # ==== Parameters
+    #
+    # * +path+ - path to child
+    #
+    # call-seq:
+    #   Registry::Entry.root.child('/api/enabled')
     def child(path)
       path.split('/').reject{|ii| ii.blank?}.inject(self) do |parent, key|
         parent.children.find_by_key(key).tap {|ii| raise ArgumentError.new("#{parent.key} has no child named #{key}") if ii.nil?}
       end
     end
 
+    # Return true if the entry is a folder (contains children).
     def folder?
       false
     end
 
+    # Create a property
+    #
+    # ==== Parameters
+    #
+    # * +hash+ - Hash of field names and values 
+    #
+    # call-seq:
+    #   Registry.entry.root.child('/api').create_property(:key => 'enabled', :value => true)
     def create_property(hash)
       Entry.create!(hash.merge(:parent => self))
     end
 
+    # Return a list of child properties.
+    #
+    # call-seq:
+    #   Registry::Entry.root.child('/api').properties
     def properties
       children.select {|child| not child.folder?}
     end
 
+    # Create and return a folder.
+    #
+    # ==== Parameters
+    #
+    # * +hash+ - Hash of field names and values 
+    #
+    # call-seq:
+    #   Registry::Entry.root.create_folder(:key => 'api' :label => 'API', :description => 'API Settings')
     def create_folder(hash)
       Folder.create!(hash.merge(:parent => self))
     end
 
+    # Return a list of child folders.
+    #
+    # call-seq:
+    #   Registry::Entry.root.child('/api').folders
     def folders
       children.select {|child| child.folder?}
     end
 
+    # :nodoc:
     def to_folder_hash
       {
         'id'    => id.to_s,
@@ -120,6 +204,7 @@ module Registry
       }
     end
 
+    # :nodoc:
     def to_grid_property_hash
       {
         'id'           => id.to_s,
@@ -132,6 +217,7 @@ module Registry
       }
     end
 
+    # :nodoc:
     def to_form_property_hash
       {
         'key'          => key.to_s,
@@ -141,6 +227,14 @@ module Registry
       }
     end
 
+    # Return a hash containing registry key/value pairs.
+    #
+    # ==== Parameters
+    #
+    # * +hash+ - Optional, hash to populate.
+    #
+    # call-seq:
+    #   Registry::Entry.root.export #=> {'api' => {'enabled' => true'}}
     def export(hash={}, entries=nil)
       entries ||= Entry.all(:conditions => ['env = ? and id != ?', env, id])
 
@@ -158,6 +252,23 @@ module Registry
       hash
     end
 
+    # Merge a hash into the current sub-tree.
+    #
+    # This method will not overwrite key/value pairs already present in leaf nodes.
+    #
+    # ==== Parameters
+    #
+    # * +hash+ - hash to merge
+    # * +opts+ - Optional merge options
+    #
+    # ==== Options
+    #
+    # * <tt>skip_already_deleted</tt> - If true, don't add folders/properties that were previously deleted. (default false)
+    # * <tt>delete</tt> - If true, delete entries that are not in +hash+. (default false)
+    #
+    # call-seq:
+    #   Registry::Entry.root.merge({'api' => {'enabled' => true}})
+    #   Registry::Entry.root.merge({'api' => {'enabled' => true}}, :skip_already_deleted => true)
     def merge(hash, opts={})
       hash.each do |key, value|
         key = encode(key)
