@@ -311,6 +311,7 @@ module Registry
       return eval(value)                                        if value =~ /^:/                            # symbol
       return decode_range(value)                                if value =~ /\.\./                          # range
       return Time.parse(value)                                  if value =~ /\d+-\d+-\d+ \d+:\d+:\d+/       # date/time
+      return value                                              if value =~ /^\d+(\.\d+){2,3}/              # ip address
       return value.to_i                                         if value =~ /^[-+]?[\d_,]+$/                # int
       return value.to_f                                         if value =~ /^[-+]?[\d_,.]+$/               # float
 

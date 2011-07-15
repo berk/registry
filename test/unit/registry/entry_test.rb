@@ -123,6 +123,8 @@ module Registry
       assert_equal :foo, entry.send(:decode, ':foo')
       assert_equal 0..9, entry.send(:decode, '0..9')
       assert_equal 0..9, entry.send(:decode, '00..09')
+      assert_equal '192.168.1.1', entry.send(:decode, '192.168.1.1')
+      assert_equal '192.168.1.0/24', entry.send(:decode, '192.168.1.0/24')
     end
 
     test 'child' do
