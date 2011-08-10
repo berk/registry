@@ -29,6 +29,7 @@ class RegistryTest < ActiveSupport::TestCase
         'enabled' => true
       },
     }
+    Registry::Entry.root.merge(reg)
 
     assert_equal true,  Registry.exists?(:api)
     assert_equal true,  Registry.exists?('api')
