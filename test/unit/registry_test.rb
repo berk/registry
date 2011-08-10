@@ -23,6 +23,25 @@ class RegistryTest < ActiveSupport::TestCase
     end
   end
 
+  test 'exists' do
+    reg = {
+      'api' => {
+        'enabled' => true
+      },
+    }
+
+    assert_equal true,  Registry.exists?(:api)
+    assert_equal true,  Registry.exists?('api')
+    assert_equal false, Registry.exists?(:notexist)
+    assert_equal false, Registry.exists?('notexist')
+    assert_equal true,  Registry.api.exists?(:enabled)
+    assert_equal true,  Registry.api.exists?(:enabled?)
+    assert_equal true,  Registry.api.exists?(:enabled=)
+    assert_equal false, Registry.api.exists?(:notexist)
+    assert_equal false, Registry.api.exists?(:notexist?)
+    assert_equal false, Registry.api.exists?(:notexist=)
+  end
+
   test 'to_hash' do
     reg = {
       'foo' => {

@@ -149,13 +149,17 @@ private
     def method_missing(method, *args)
       super
     rescue NoMethodError
-      raise unless @hash.has_key?(method.to_s.sub(/[\?=]{0,1}$/, ''))
+      raise unless exists?(method)
       add_methods_for(method)
       send(method, *args)
     end
 
     def to_hash
       @hash
+    end
+
+    def exists?(method)
+      @hash.key?( method_key(method) )
     end
 
     def with(config_hash, &block)
@@ -181,8 +185,12 @@ private
 
   private
 
+    def method_key(method)
+      method.to_s.sub(/[\?=]{0,1}$/, '')
+    end
+
     def add_methods_for(method)
-      method = method.to_s.sub(/[\?=]{0,1}$/, '')
+      method = method_key( method )
 
       self.class_eval %{
 
