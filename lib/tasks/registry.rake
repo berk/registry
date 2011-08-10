@@ -11,7 +11,7 @@ namespace :registry do
     output_dir = "#{Rails.root}/public/coverage"
     files = Dir['test/{unit,functional}/**/*_test.rb'].join(' ')
     rm_rf(output_dir)
-    sh "rcov --rails -t --sort coverage -o public/coverage -x '/usr/local/rvm/gems/ree-1.8.7-2010.02/gems' #{files}"
+    sh "rcov --rails -t --sort coverage -o public/coverage -x 'gems' #{files}"
   end
 
   desc 'Set a registry value (eg api.enabled=true)'
