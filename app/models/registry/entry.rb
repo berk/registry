@@ -110,8 +110,10 @@ module Registry
     # call-seq
     #   Registry::Entry.import!('/path/to/my.yml')
     def self.import!(file_path = DEFAULT_YML_LOCATION, opts={})
-      YAML.load_file( file_path ).each do |env, entries|
-        root(env).merge(entries, opts)
+      hash = YAML.load_file(file_path)
+      default_entries = hash.delete(Registry::DEFAULTS_KEY) || {}
+      hash.each do |env, entries|
+        root(env).merge(default_entries.deep_merge(entries), opts)
       end
     end
 
@@ -197,7 +199,7 @@ module Registry
     def to_folder_hash
       {
         'id'    => id.to_s,
-        'key'   => encode(key),
+        'key'   => to_db(key),
         'label' => label.to_s,
         'text'  => (label.blank? ? key : label),
         'cls'   => 'folder',
@@ -231,7 +233,7 @@ module Registry
     #
     # ==== Parameters
     #
-    # * +hash+ - Optional, hash to populate.
+    # * +hash+ - Optional, hash to update.
     #
     # call-seq:
     #   Registry::Entry.root.export #=> {'api' => {'enabled' => true'}}
@@ -240,12 +242,12 @@ module Registry
 
       properties, entries = entries.partition {|entry| entry.parent_id == id && !entry.folder?}
       properties.each do |p|
-        hash[decode(p.key)] = decode(p.value)
+        hash[from_db(p.key)] = from_db(p.value)
       end
 
       folders, entries = entries.partition {|entry| entry.parent_id == id && entry.folder?}
       folders.each do |f|
-        hash[f.key] = {}
+        hash[f.key] ||= {}
         f.export(hash[f.key], entries)
       end
 
@@ -271,7 +273,7 @@ module Registry
     #   Registry::Entry.root.merge({'api' => {'enabled' => true}}, :skip_already_deleted => true)
     def merge(hash, opts={})
       hash.each do |key, value|
-        key = encode(key)
+        key = to_db(key)
         reg = Entry.first(:conditions => ['parent_id = ? AND key = ?', self, key])
         if value.is_a?(Hash)
           reg = create_folder(:key => key) if reg.nil? && should_create?(key, opts)
@@ -284,7 +286,7 @@ module Registry
       end
 
       if opts[:delete]
-        keys = hash.keys.map {|ii| encode(ii)}
+        keys = hash.keys.map {|ii| to_db(ii)}
         children.each do |child|
           child.delete unless keys.include?(child.key)
         end
@@ -293,9 +295,10 @@ module Registry
 
   private
 
-    def encode(value)
+    # Convert native type to String which will be stored in the database.
+    def to_db(value)
       case value
-        when Array                  then "[#{value.map {|ii| encode(ii)}.join(',')}]"
+        when Array                  then "[#{value.map {|ii| to_db(ii)}.join(',')}]"
         when Date,Time              then value.strftime("%Y-%m-%d %H:%M:%S %Z")
         when Symbol                 then ":#{value}"
         when TrueClass,FalseClass   then value ? 'true' : 'false'
@@ -303,13 +306,14 @@ module Registry
       end
     end
 
-    def decode(value)
+    # Convert String from the database to native type which will be used by the caller.
+    def from_db(value)
       return value unless value.is_a?(String)
 
-      return value[1 .. -2].split(',').map { |ii| decode(ii) }  if value[0,1] == '[' and value[-1,1] == ']' # array
+      return value[1 .. -2].split(',').map { |ii| from_db(ii) }  if value[0,1] == '[' and value[-1,1] == ']' # array
       return 'true' == value                                    if value =~ /^(true|false)$/i               # boolean
       return eval(value)                                        if value =~ /^:/                            # symbol
-      return decode_range(value)                                if value =~ /\.\./                          # range
+      return from_db_range(value)                               if value =~ /\.\./                          # range
       return Time.parse(value)                                  if value =~ /\d+-\d+-\d+ \d+:\d+:\d+/       # date/time
       return value                                              if value =~ /^\d+(\.\d+){2,3}/              # ip address
       return value.to_i                                         if value =~ /^[-+]?[\d_,]+$/                # int
@@ -318,7 +322,8 @@ module Registry
       value                                                                                                 # string
     end
 
-    def decode_range(value)
+    # Convert a String from the database to a ruby range.
+    def from_db_range(value)
       eval(value)
     rescue SyntaxError => ex
       raise ex unless ex.message =~ /octal/
@@ -326,11 +331,12 @@ module Registry
       eval("#{from.to_i} #{range} #{to.to_i}")
     end
 
+    # Used by UI to get the String containing the ruby code used to access this entry.
     def access_code
       parts = [ 'Registry' ]
       parts << (ancestors.collect{|a| a.key}.reverse - [ROOT_ACCESS_KEY])
       parts.flatten!.compact!
-      parts << (([TrueClass, FalseClass].include?(decode(value).class)) ? "#{key}?" : key)
+      parts << (([TrueClass, FalseClass].include?(from_db(value).class)) ? "#{key}?" : key)
       parts.join('.')
     end
 
@@ -339,11 +345,11 @@ module Registry
     end
 
     def normalize_key
-      self.key = encode(key)
+      self.key = to_db(key)
     end
 
     def normalize_value
-      self.value = encode(value)
+      self.value = to_db(value)
     end
 
     def should_create?(key, opts)

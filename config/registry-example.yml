@@ -1,0 +1,17 @@
+---
+defaults:
+  fixed_folder:
+    boolean:  false
+  override_folder:
+    boolean:  true
+    string:   'development'
+    integer:  42
+    float:    3.14
+    symbol:   :foo
+    range:    '1..10'
+development:
+  override_folder:
+    string:   'development'
+test:
+  override_folder:
+    string:   'test'

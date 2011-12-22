@@ -118,13 +118,13 @@ module Registry
       assert_equal expected, Entry.root.export
     end
 
-    test 'decode' do
+    test 'from_db' do
       entry = Registry::Entry.new
-      assert_equal :foo, entry.send(:decode, ':foo')
-      assert_equal 0..9, entry.send(:decode, '0..9')
-      assert_equal 0..9, entry.send(:decode, '00..09')
-      assert_equal '192.168.1.1', entry.send(:decode, '192.168.1.1')
-      assert_equal '192.168.1.0/24', entry.send(:decode, '192.168.1.0/24')
+      assert_equal :foo, entry.send(:from_db, ':foo')
+      assert_equal 0..9, entry.send(:from_db, '0..9')
+      assert_equal 0..9, entry.send(:from_db, '00..09')
+      assert_equal '192.168.1.1', entry.send(:from_db, '192.168.1.1')
+      assert_equal '192.168.1.0/24', entry.send(:from_db, '192.168.1.0/24')
     end
 
     test 'child' do
