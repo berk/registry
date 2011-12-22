@@ -110,8 +110,10 @@ module Registry
     # call-seq
     #   Registry::Entry.import!('/path/to/my.yml')
     def self.import!(file_path = DEFAULT_YML_LOCATION, opts={})
-      YAML.load_file( file_path ).each do |env, entries|
-        root(env).merge(entries, opts)
+      hash = YAML.load_file(file_path)
+      default_entries = hash.delete(Registry::DEFAULTS_KEY) || {}
+      hash.each do |env, entries|
+        root(env).merge(default_entries.deep_merge(entries), opts)
       end
     end
 
@@ -231,7 +233,7 @@ module Registry
     #
     # ==== Parameters
     #
-    # * +hash+ - Optional, hash to populate.
+    # * +hash+ - Optional, hash to update.
     #
     # call-seq:
     #   Registry::Entry.root.export #=> {'api' => {'enabled' => true'}}
@@ -245,7 +247,7 @@ module Registry
 
       folders, entries = entries.partition {|entry| entry.parent_id == id && entry.folder?}
       folders.each do |f|
-        hash[f.key] = {}
+        hash[f.key] ||= {}
         f.export(hash[f.key], entries)
       end
 

@@ -64,9 +64,39 @@ class RegistryTest < ActiveSupport::TestCase
       YAML.dump(reg, file)
     end
 
-    Registry.import('/tmp/foo.yml')
+    # 3 comes from test, test/api, test/api/enabled
+    assert_difference 'Registry::Entry.count', 3 do
+      Registry.import('/tmp/foo.yml')
+    end
 
     assert_equal true, Registry.api.enabled?
+  end
+
+  test 'import with defaults' do
+    File.open('/tmp/foo.yml', 'w+') do |file|
+      YAML.dump(registry_hash_with_defaults, file)
+    end
+
+    # 8 comes from: test, test/unchanged, test/unchanged/string,
+    #               test/changable, test/changeable/string, test/changeable/symbol
+    #               test/new, test/new/string
+    assert_difference 'Registry::Entry.count', 8 do
+      Registry.import('/tmp/foo.yml')
+    end
+
+    expected = {
+      'unchanged' => {
+        'string' => 'default',
+      },
+      'changable' => {
+        'string' => 'test',
+        'symbol' => :symbol,
+      },
+      'new' => {
+        'string' => 'new',
+      },
+    }
+    assert_equal expected, Registry.to_hash
   end
 
   test 'import with purge' do
@@ -159,5 +189,29 @@ class RegistryTest < ActiveSupport::TestCase
     Registry.api.enabled = false
     assert_equal 2, Registry.versions('api/enabled').size
  end
+
+private
+
+  def registry_hash_with_defaults
+    {
+      Registry::DEFAULTS_KEY => {
+        'unchanged' => {
+          'string'  => 'default',
+        },
+        'changable' => {
+          'string'  => 'default',
+        },
+      },
+      'test' => {
+        'changable' => {
+          'string'  => 'test',
+          'symbol'  => ':symbol',
+        },
+        'new' => {
+          'string'  => 'new',
+        },
+      },
+    }
+  end
 
 end # class RegistryTest
