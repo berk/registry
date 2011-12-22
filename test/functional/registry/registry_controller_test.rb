@@ -259,7 +259,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
     end
  end
 
- test 'user configuration' do
+ test 'user_id configuration' do
     Registry.configure do |config|
       config.user_id { 42 }
     end
@@ -272,6 +272,22 @@ class Registry::RegistryControllerTest < ActionController::TestCase
 
     assert_raise NoMethodError do
       @controller.send(:registry_user_id)
+    end
+ end
+
+ test 'user_name configuration' do
+    Registry.configure do |config|
+      config.user_name { 'Scott' }
+    end
+
+    assert_equal 'Scott', @controller.send(:registry_user_name)
+
+    Registry.configure do |config|
+      config.user_name
+    end
+
+    assert_raise NoMethodError do
+      @controller.send(:registry_user_name)
     end
  end
 
