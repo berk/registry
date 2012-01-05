@@ -1,5 +1,7 @@
 module Registry
 
+  DEFAULTS_KEY = 'defaults'
+
   # Configure the Registry Engine.
   #
   # call-seq:
@@ -29,7 +31,11 @@ module Registry
   #   Registry.api.request_limit? # => 1
   #
   def self.method_missing(method, *args)
-    (@registry ||= RegistryWrapper.new(Rails.cache.fetch(cache_key){Entry.root.export})).send(method, *args)
+    @registry ||= begin
+      registry_hash = Rails.cache.fetch(cache_key) {Entry.root.export}
+      RegistryWrapper.new(registry_hash)
+    end
+    @registry.send(method, *args)
   end
 
   # Reset the registry.
@@ -62,20 +68,22 @@ module Registry
   #
   # yml File should be in the following format:
   #
-  # development:
+  # defaults:
   #   api:
   #     enabled:        true
+  #     request_limit:  100
+  #
+  # development:
+  #   api:
   #     request_limit:  1
   #
   # test:
   #   api:
-  #     enabled:        true
   #     request_limit:  1
   #
   # production:
   #   api:
   #     enabled:        false
-  #     request_limit:  1
   #
   # call-seq:
   #   Registry.import("#{Rails.root}/config/defaults.yml")
@@ -84,7 +92,9 @@ module Registry
   #
   def self.import(file, opts={})
     if opts[:testing]
-      @registry = RegistryWrapper.new(YAML.load_file(file)[Rails.env.to_s])
+      hash = YAML.load_file(file)
+      hash = (hash[DEFAULTS_KEY] || {}).deep_merge(hash[Rails.env.to_s])
+      @registry = RegistryWrapper.new(hash)
       return
     end
 

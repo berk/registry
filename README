@@ -73,20 +73,21 @@
 
   in config/registry.yml
 
-    development:
+    defaults:
       api_enabled:        true
       api_request_limit:  1
       api_request_window: 1000
+
+    development:
+      api_request_window: 100
    
     test:
-      api_enabled:        true
-      api_request_limit:  1
-      api_request_window: 1000
+      api_request_window: 100
    
     production:
       api_enabled:        false
-      api_request_limit:  1
-      api_request_window: 1000
+      api_request_limit:  10
+      api_request_window: 10000
    
 
   in lib/tasks/my_tasks.rake
