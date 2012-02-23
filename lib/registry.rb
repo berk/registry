@@ -31,10 +31,13 @@ module Registry
   #   Registry.api.request_limit? # => 1
   #
   def self.method_missing(method, *args)
+    reset if should_reset?
+
     @registry ||= begin
       registry_hash = Rails.cache.fetch(cache_key) {Entry.root.export}
       RegistryWrapper.new(registry_hash)
     end
+
     @registry.send(method, *args)
   end
 
@@ -49,7 +52,13 @@ module Registry
   def self.reset(clear_cache=nil)
     return if prevent_reset?
     @registry = nil
+    @last_reset_time = Time.now
     self.clear_cache if clear_cache
+  end
+
+  # When the registry was last reset.
+  def self.last_reset_time
+    @last_reset_time
   end
 
   # Import registry values from yml file.
@@ -148,6 +157,10 @@ protected
   end
 
 private
+
+  def self.should_reset?
+    false
+  end
 
   class RegistryWrapper
 
