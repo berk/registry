@@ -56,5 +56,44 @@ module Registry
       end
     end
 
+    # Set the reset_interval.
+    #
+    # If a registry access occurs more than +reset_interval+ seconds
+    # since the last reset, Registry.reset will be called before the
+    # next access occurs.
+    #
+    # see: reset_proc for more info.
+    #
+    # ==== Parameters
+    #
+    # * +interval+ - Interval in seconds to reset
+    #
+    # call-seq:
+    #   Registry.configure do |config|
+    #     config.reset_interval = 30.seconds
+    #   end
+    def reset_interval=(interval)
+      should_reset_proc do
+        return false if interval.nil?
+        (Time.now.to_i - Registry.last_reset_time.to_i) >= interval
+      end
+    end
+
+    # Specify a Proc to call to determine if the registry should be reset.
+    #
+    # Registry.method_missing will call this proc before each access.
+    # If the proc returns true, then Registry.reset will be called before
+    # the next access occurs.
+    #
+    # call-seq:
+    #   Registry.configure do |config|
+    #     config.should_reset_proc do
+    #       (Time.now.to_i - Registry.last_reset_time.to_i) >= 30.seconds
+    #     end
+    #   end
+    def should_reset_proc(&blk)
+      Registry.singleton_class.send(:define_method, :should_reset?, &blk)
+    end
+
   end
 end # module Registry
