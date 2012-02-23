@@ -1,6 +1,6 @@
 module Registry
 
-  DEFAULTS_KEY = 'defaults'
+  DEFAULTS_KEY = 'defaults' unless defined?(DEFAULTS_KEY)
 
   # Configure the Registry Engine.
   #
