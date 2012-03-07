@@ -188,7 +188,18 @@ class RegistryTest < ActiveSupport::TestCase
     assert_equal 1, Registry.versions('api/enabled').size
     Registry.api.enabled = false
     assert_equal 2, Registry.versions('api/enabled').size
- end
+  end
+
+  test 'reset_interval reset_proc and should_reset' do
+    Registry.configure do |cfg| 
+      cfg.reset_interval = 1.second
+    end
+
+    Registry.reset
+    assert !Registry.should_reset?
+    sleep 2
+    assert  Registry.should_reset?
+  end
 
 private
 
