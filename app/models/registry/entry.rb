@@ -322,11 +322,11 @@ module Registry
       value                                                                                                 # string
     end
 
-    # Convert a String from the database to a ruby range.
+    # Try to convert a String from the database to a ruby range.
     def from_db_range(value)
-      eval(value)
+      eval(value) rescue value
     rescue SyntaxError => ex
-      raise ex unless ex.message =~ /octal/
+      return value unless ex.message =~ /octal/  # conversion failed, just return value
       from, range, to = value.match(/(.*)\s*(\.\.\.?)\s*(.*)/).to_a[1 .. -1]
       eval("#{from.to_i} #{range} #{to.to_i}")
     end
