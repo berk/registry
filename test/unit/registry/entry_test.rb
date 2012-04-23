@@ -125,6 +125,7 @@ module Registry
       assert_equal 0..9, entry.send(:from_db, '00..09')
       assert_equal '192.168.1.1', entry.send(:from_db, '192.168.1.1')
       assert_equal '192.168.1.0/24', entry.send(:from_db, '192.168.1.0/24')
+      assert_equal 'this... is a test', entry.send(:from_db, 'this... is a test')
     end
 
     test 'child' do
