@@ -126,6 +126,7 @@ module Registry
       assert_equal '192.168.1.1', entry.send(:from_db, '192.168.1.1')
       assert_equal '192.168.1.0/24', entry.send(:from_db, '192.168.1.0/24')
       assert_equal 'this... is a test', entry.send(:from_db, 'this... is a test')
+      assert_equal 'colons: are ok too', entry.send(:from_db, 'colons: are ok too')
     end
 
     test 'child' do
