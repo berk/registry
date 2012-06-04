@@ -245,3 +245,5 @@ private
   end
 
 end # module Registry
+
+require 'registry/transcoder'
