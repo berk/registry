@@ -182,7 +182,7 @@ private
     end
 
     def exists?(method)
-      @hash.key?( method_key(method) )
+      !!hash_key(method_name(method))
     end
 
     def with(config_hash, &block)
@@ -208,17 +208,21 @@ private
 
   private
 
-    def method_key(method)
+    def method_name(method)
       method.to_s.sub(/[\?=]{0,1}$/, '')
     end
 
+    def hash_key(method)
+      @hash.keys.find {|key| key.to_s == method.to_s}
+    end
+
     def add_methods_for(method)
-      method = method_key( method )
+      method = method_name( method )
 
       self.class_eval %{
 
         def #{method}                                               # def foo
-          ret = @hash['#{method}']                                  #   ret = @hash['foo']
+          ret = @hash[hash_key('#{method}')]                        #   ret = @hash[hash_key('foo')]
           if ret.is_a?(Hash)                                        #   if ret.is_a?(Hash)
             path = @parent_path + '/#{method}'                      #     path = @parent_path + '/foo'
             ret = @hash['#{method}'] = self.class.new(ret, path)    #     ret = @hash['foo'] = self.class.new(ret, path)
@@ -227,12 +231,12 @@ private
         end                                                         # end
 
         def #{method}=(value, save=true)                            # def foo=(value, save=true)
-          @hash['#{method}'] = value                                #   @hash['foo'] = value
+          @hash[hash_key('#{method}')] = value                      #   @hash[hash_key('foo')] = value
           update('#{method}', value) if save                        #   update('foo', value) if save
         end                                                         # end
 
         def #{method}?                                              # def foo?
-          !!@hash['#{method}']                                      #   !!@hash['foo']
+          !!@hash[hash_key('#{method}')]                            #   !!@hash[hash_key('foo')]
         end                                                         # end
 
       }, __FILE__, __LINE__

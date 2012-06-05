@@ -9,8 +9,8 @@ class RegistryTest < ActiveSupport::TestCase
   test 'method_missing' do
     reg = {
       'api' => {
-        'enabled' => true,
-        'limit'   => 1,
+        :enabled => true,
+        'limit'  => 1,
       },
     }
     Registry::Entry.root.merge(reg)
