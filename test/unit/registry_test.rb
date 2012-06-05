@@ -201,6 +201,21 @@ class RegistryTest < ActiveSupport::TestCase
     assert  Registry.should_reset?
   end
 
+  test 'add a duration transcoder' do
+    Registry.configure do |cfg|
+      cfg.add_transcoder do
+        MATCH_REGEX = /(\d+)\.(second|minute|hour|day|week|month|year)s?/
+        from_db {|string| $1.to_i.send($2) if string =~ MATCH_REGEX}
+        matches do |value|
+          value.to_s =~ MATCH_REGEX # from_db
+        end
+      end
+    end
+
+    assert_equal '2.seconds', Registry::Transcoder.to_db('2.seconds')
+    assert_equal 2,           Registry::Transcoder.from_db('2.seconds')
+  end
+
 private
 
   def registry_hash_with_defaults

@@ -309,11 +309,11 @@ module Registry
     end
 
     def normalize_key
-      self.key = Transcoder.to_db(key)
+      self.key = Transcoder.to_db(key) unless key.is_a?(String)
     end
 
     def normalize_value
-      self.value = Transcoder.to_db(value)
+      self.value = Transcoder.to_db(value) unless value.is_a?(String)
     end
 
     def should_create?(key, opts)
