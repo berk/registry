@@ -15,17 +15,22 @@ module Registry
       assert_equal ['dev', 'test'], Entry.environments.sort
     end
 
-    test 'export' do
+    test 'export!' do
       expected = create_entries
       assert_equal expected, Entry.export!(CONFIG)
       assert_equal true, File.exists?(CONFIG), 'Export file should be created'
     end
 
-    test 'export no file' do
+    test 'export! no file' do
       File.delete(Entry::DEFAULT_YML_LOCATION) rescue nil
       expected = create_entries
       assert_equal expected, Entry.export!(nil)
       assert_equal false, File.exists?(Entry::DEFAULT_YML_LOCATION), 'Export file should NOT be created'
+    end
+
+    test 'export' do
+      expected = create_entries['test']
+      assert_hash expected, Entry.root.export
     end
 
     test 'import does not overwrite' do
