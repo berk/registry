@@ -182,7 +182,7 @@ private
     end
 
     def exists?(method)
-      !!hash_key(method_name(method))
+      @hash.key?(hash_key(method_name(method)))
     end
 
     def with(config_hash, &block)
@@ -213,7 +213,7 @@ private
     end
 
     def hash_key(method)
-      @hash.keys.find {|key| key.to_s == method.to_s}
+      @hash.keys.find {|key| key.to_s == method.to_s} || method
     end
 
     def add_methods_for(method)
@@ -222,17 +222,20 @@ private
       self.class_eval %{
 
         def #{method}                                               # def foo
-          ret = @hash[hash_key('#{method}')]                        #   ret = @hash[hash_key('foo')]
+          key = hash_key('#{method}')                               #   key = hash_key('foo')      
+          ret = @hash[key]                                          #   ret = @hash[key]
           if ret.is_a?(Hash)                                        #   if ret.is_a?(Hash)
             path = @parent_path + '/#{method}'                      #     path = @parent_path + '/foo'
-            ret = @hash['#{method}'] = self.class.new(ret, path)    #     ret = @hash['foo'] = self.class.new(ret, path)
+            ret = self.class.new(ret, path)                         #     ret = self.class.new(ret, path)
+            @hash[key] = ret                                        #     @hash[key] = ret
           end                                                       #   end
           ret                                                       #   ret
         end                                                         # end
 
         def #{method}=(value, save=true)                            # def foo=(value, save=true)
-          @hash[hash_key('#{method}')] = value                      #   @hash[hash_key('foo')] = value
-          update('#{method}', value) if save                        #   update('foo', value) if save
+          key = hash_key('#{method}')                               #   key = hash_key('foo')      
+          @hash[key] = value                                        #   @hash[key] = value
+          update(key, value) if save                                #   update(key, value) if save
         end                                                         # end
 
         def #{method}?                                              # def foo?
