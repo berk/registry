@@ -19,15 +19,6 @@ module Registry
       return string
     end
 
-    # Try to convert a String from the database to a ruby range.
-    def self.from_db_range(value)
-      eval(value)
-    rescue SyntaxError => ex
-      return value unless ex.message =~ /octal/  # conversion failed, just return value
-      from, range, to = value.match(/(.*)\s*(\.\.\.?)\s*(.*)/).to_a[1 .. -1]
-      eval("#{from.to_i} #{range} #{to.to_i}")
-    end
-
     def self.transcoders
       @transcoders ||= []
     end
