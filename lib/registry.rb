@@ -228,6 +228,8 @@ private
             path = @parent_path + '/#{method}'                      #     path = @parent_path + '/foo'
             ret = self.class.new(ret, path)                         #     ret = self.class.new(ret, path)
             @hash[key] = ret                                        #     @hash[key] = ret
+          elsif ret.is_a?(String)                                   #   elsif ret.is_a?(String)
+            ret = Registry::Transcoder.from_db(ret)                 #     ret = Registry::Transcoder.from_db(ret)
           end                                                       #   end
           ret                                                       #   ret
         end                                                         # end
