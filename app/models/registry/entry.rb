@@ -236,7 +236,7 @@ module Registry
     # * +hash+ - Optional, hash to update.
     #
     # call-seq:
-    #   Registry::Entry.root.export #=> {'api' => {'enabled' => true'}}
+    #   Registry::Entry.root.export #=> {'api' => {'enabled' => true}}
     def export(hash={}, entries=nil)
       entries ||= Entry.all(:conditions => ['env = ? and id != ?', env, id])
 
