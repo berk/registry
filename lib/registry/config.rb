@@ -95,5 +95,47 @@ module Registry
       Registry.singleton_class.send(:define_method, :should_reset?, &blk)
     end
 
+    # Add a transcoder.
+    #
+    # Transcoders are used to convert native types to/from a string that is stored in the database.
+    #
+    # call-seq:
+    #   Registry.configure.do |config|
+    #
+    #     # add integer transcoder
+    #     config.add_transcoder do
+    #       check   { |value| value.is_a?(Integer) or value =~ /\A[-+]?[\d_,]+\z/ }
+    #       from_db { |string| string.to_i }
+    #     end
+    #
+    #     # add range transcoder
+    #     config.add_transcoder do
+    #       check   { |value| value =~ /\.\./ }
+    #
+    #       from_db do |string| 
+    #         begin
+    #           eval(value)
+    #         rescue SyntaxError => ex
+    #           return value unless ex.message =~ /octal/  # conversion failed, just return value
+    #           from, range, to = value.match(/(.*)\s*(\.\.\.?)\s*(.*)/).to_a[1 .. -1]
+    #           eval("#{from.to_i} #{range} #{to.to_i}")
+    #         end
+    #       end
+    #     end
+    #
+    #     # add array transcoder
+    #     config.add_transcoder do
+    #       check   { |value|  value[0,1] == '[' and value[-1,1] == ']' }
+    #       to_db   { |value|  "[#{value.map {|ii| Transcoder.to_db(ii)}.join(',')}]" }
+    #       from_db { |string| string[1 .. -2].split(',').map {|ii| Transcoder.from_db(ii)} }
+    #     end
+    #
+    #   end
+    def add_transcoder(&block)
+      instance = Transcoder::DSL.new
+      instance.instance_eval &block
+      Transcoder.transcoders << instance
+    end
+
   end
 end # module Registry

@@ -9,8 +9,8 @@ class RegistryTest < ActiveSupport::TestCase
   test 'method_missing' do
     reg = {
       'api' => {
-        'enabled' => true,
-        'limit'   => 1,
+        :enabled => true,
+        'limit'  => 1,
       },
     }
     Registry::Entry.root.merge(reg)
@@ -199,6 +199,26 @@ class RegistryTest < ActiveSupport::TestCase
     assert !Registry.should_reset?
     sleep 2
     assert  Registry.should_reset?
+  end
+
+  test 'add a duration transcoder' do
+    Registry.configure do |cfg|
+      cfg.add_transcoder do
+        MATCH_REGEX = /(\d+)\.(second|minute|hour|day|week|month|year)s?/
+        from_db {|string| $1.to_i.send($2) if string =~ MATCH_REGEX}
+        matches do |value|
+          value.to_s =~ MATCH_REGEX # from_db
+        end
+      end
+    end
+
+    assert_equal '2.seconds', Registry::Transcoder.to_db('2.seconds')
+    assert_equal 2,           Registry::Transcoder.from_db('2.seconds')
+  end
+
+  test 'wrapper decodes string values' do
+    wrapper = Registry::RegistryWrapper.new(:one => '1')
+    assert_equal 1, wrapper.one
   end
 
 private
