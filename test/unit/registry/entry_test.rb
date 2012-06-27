@@ -15,17 +15,22 @@ module Registry
       assert_equal ['dev', 'test'], Entry.environments.sort
     end
 
-    test 'export' do
+    test 'export!' do
       expected = create_entries
       assert_equal expected, Entry.export!(CONFIG)
       assert_equal true, File.exists?(CONFIG), 'Export file should be created'
     end
 
-    test 'export no file' do
+    test 'export! no file' do
       File.delete(Entry::DEFAULT_YML_LOCATION) rescue nil
       expected = create_entries
       assert_equal expected, Entry.export!(nil)
       assert_equal false, File.exists?(Entry::DEFAULT_YML_LOCATION), 'Export file should NOT be created'
+    end
+
+    test 'export' do
+      expected = create_entries['test']
+      assert_hash expected, Entry.root.export
     end
 
     test 'import does not overwrite' do
@@ -110,23 +115,17 @@ module Registry
     end
 
     test 'merge with delete flag' do
-      Entry.root.merge('keep' => {:keep => true, :lose => false}, :keep => 'keep', 'lose' => {:lose => true}, :lose => 'lose')
+      Entry.root.merge(
+        'keep' => {:keep => true, :lose => false},
+        :keep  => 'keep',
+        'lose' => {:lose => true},
+        :lose  => 'lose'
+      )
 
-      Entry.root.merge({'keep' => {:keep => false}, :keep => 'kept'}, :delete => true)
+      Entry.root.merge({'keep' => {:keep => 'ignored'}, :keep => 'ignored'}, :delete => true)
 
       expected = {'keep' => {:keep => true}, :keep => 'keep'}
       assert_equal expected, Entry.root.export
-    end
-
-    test 'from_db' do
-      entry = Registry::Entry.new
-      assert_equal :foo, entry.send(:from_db, ':foo')
-      assert_equal 0..9, entry.send(:from_db, '0..9')
-      assert_equal 0..9, entry.send(:from_db, '00..09')
-      assert_equal '192.168.1.1', entry.send(:from_db, '192.168.1.1')
-      assert_equal '192.168.1.0/24', entry.send(:from_db, '192.168.1.0/24')
-      assert_equal 'this... is a test', entry.send(:from_db, 'this... is a test')
-      assert_equal 'colons: are ok too', entry.send(:from_db, 'colons: are ok too')
     end
 
     test 'child' do
