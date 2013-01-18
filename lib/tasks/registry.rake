@@ -14,7 +14,7 @@ namespace :registry do
     sh "rcov --rails -t --sort coverage -o public/coverage -x 'gems' #{files}"
   end
 
-  desc 'Set a registry value (eg api.enabled=true)'
+  desc "Set a registry value (eg 'api.enabled'=true)"
   task :set => [:environment] do
     ARGV.shift
     ARGV.each do |key_value|
