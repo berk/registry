@@ -4,3 +4,5 @@ db/schema.rb*
 *.log
 *.sqlite3
 *.swp
+Gemfile.lock
+.bundle

@@ -41,7 +41,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
     get :folders, :node => folder.parent.id
     assert_response :success
     expected = [{'id' => folder.id.to_s, 'key' => 'folder', 'label' => 'Label', 'text' => 'Label', 'cls' => 'folder'}]
-    assert_equal expected, JSON.parse(@response.body)
+    assert_equal expected, ActiveSupport::JSON.decode(@response.body)
   end
 
   test 'folder' do
@@ -52,7 +52,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
       'success'     => true,
       'folders'  => [{'id' => @root.id.to_s, 'key' => @root.key, 'label' => @root.label, 'text' => @root.label, 'cls' => 'folder'}]
     }
-    assert_equal expected, JSON.parse(@response.body)
+    assert_equal expected, ActiveSupport::JSON.decode(@response.body)
   end
 
   test 'folder creation' do
@@ -66,7 +66,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'success'     => true,
         'folders'  => [{'id' => @root.folders.first.id.to_s, 'key' => 'key', 'label' => 'Label', 'text' => 'Label', 'cls' => 'folder'}]
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, Registry::Folder.last.user_id
     end
   end
@@ -86,7 +86,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'success'     => true,
         'folders'  => [{'id' => child.id.to_s, 'key' => 'Key', 'label' => 'Label', 'text' => 'Label', 'cls' => 'folder'}]
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, child.user_id
     end
   end
@@ -101,7 +101,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
       'success'     => true,
       'properties'  => [{'label' => '', 'value' => '', 'description' => '', 'key' => ''}]
     }
-    assert_equal expected, JSON.parse(@response.body)
+    assert_equal expected, ActiveSupport::JSON.decode(@response.body)
   end
 
   test 'property creation' do
@@ -115,7 +115,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'success'     => true,
         'properties'  => [{'label' => 'Label', 'value' => 'value', 'description' => 'Description', 'key' => 'key'}]
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, Registry::Entry.last.user_id
     end
   end
@@ -135,7 +135,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'success'     => true,
         'properties'  => [{'key' => 'Key', 'value' => 'Value', 'label' => 'Label', 'description' => 'Description'}]
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, Registry::Entry.last.user_id
     end
   end
@@ -153,7 +153,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         {'id' => two.id.to_s, 'key' => 'two', 'value' => '2', 'label' => 'two', 'description' => '', 'access_code' => 'Registry.two', 'notes' => ''},
       ]
     }
-    assert_equal expected, JSON.parse(@response.body)
+    assert_equal expected, ActiveSupport::JSON.decode(@response.body)
   end
 
   test 'properties put' do
@@ -168,7 +168,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
           {'id' => one.id.to_s, 'key' => 'one', 'value' => '2', 'label' => 'one', 'description' => '', 'access_code' => 'Registry.one', 'notes' => ''},
         ]
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, Registry::Entry.last.user_id
     end
   end
@@ -185,7 +185,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         'success'     => true,
         'properties'  => []
       }
-      assert_equal expected, JSON.parse(@response.body)
+      assert_equal expected, ActiveSupport::JSON.decode(@response.body)
       assert_equal id, Registry::Entry::Version.last.user_id
     end
   end
@@ -207,7 +207,7 @@ class Registry::RegistryControllerTest < ActionController::TestCase
         {'id' => first.id.to_s,  'value' => '1', 'label' => 'one', 'updated' => first.updated_at.to_s, 'notes' => '', 'user' => ''},
       ]
     }
-    assert_equal expected, JSON.parse(@response.body)
+    assert_equal expected, ActiveSupport::JSON.decode(@response.body)
   end
 
 
