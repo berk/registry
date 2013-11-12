@@ -236,9 +236,13 @@ module Registry
     # * +hash+ - Optional, hash to update.
     #
     # call-seq:
-    #   Registry::Entry.root.export #=> {'api' => {'enabled' => true}}
+    #   Registry::Entry.root.export #=> {'api' => {'enabled' => true}, '_last_updated_at' => ...}
     def export(hash={}, entries=nil)
-      entries ||= Entry.all(:conditions => ['env = ? and id != ?', env, id])
+
+      if entries.nil?
+        entries = Entry.all(:conditions => ['env = ? and id != ?', env, id])
+        hash['_last_updated_at'] = entries.inject(Time.at(0)) {|old_max, entry| [old_max, entry.updated_at].max}
+      end
 
       properties, entries = entries.partition {|entry| entry.parent_id == id && !entry.folder?}
       properties.each do |p|

@@ -17,14 +17,14 @@ module Registry
 
     test 'export!' do
       expected = create_entries
-      assert_equal expected, Entry.export!(CONFIG)
+      assert_hash expected, Entry.export!(CONFIG)
       assert_equal true, File.exists?(CONFIG), 'Export file should be created'
     end
 
     test 'export! no file' do
       File.delete(Entry::DEFAULT_YML_LOCATION) rescue nil
       expected = create_entries
-      assert_equal expected, Entry.export!(nil)
+      assert_hash expected, Entry.export!(nil)
       assert_equal false, File.exists?(Entry::DEFAULT_YML_LOCATION), 'Export file should NOT be created'
     end
 
@@ -54,12 +54,13 @@ module Registry
 
       expected = {
         'dev' => {
-          'one' => 'preserve',
-          'two' => {'one' => 'preserve', 'two' => 'new'},
-          'tre' => 'new',
+          '_last_updated_at' => '__any__',
+          'one'              => 'preserve',
+          'two'              => {'one' => 'preserve', 'two' => 'new'},
+          'tre'              => 'new',
         }
       }
-      assert_equal expected, Entry.export!(nil)
+      assert_hash expected, Entry.export!(nil)
     end
 
     test 'versioning' do
@@ -124,8 +125,8 @@ module Registry
 
       Entry.root.merge({'keep' => {:keep => 'ignored'}, :keep => 'ignored'}, :delete => true)
 
-      expected = {'keep' => {:keep => true}, :keep => 'keep'}
-      assert_equal expected, Entry.root.export
+      expected = {'keep' => {:keep => true}, :keep => 'keep', '_last_updated_at' => '__any__'}
+      assert_hash expected, Entry.root.export
     end
 
     test 'child' do
@@ -169,6 +170,8 @@ module Registry
             entries[env][folder.key].store(key, value)
           end
         end
+
+        entries[env]['_last_updated_at'] = '__any__'
       end
 
       entries
