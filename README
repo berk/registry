@@ -6,8 +6,8 @@
 
 === Installation
 
-  script/plugin install git://github.com/berk/registry.git
-
+  # Gemfile
+  gem 'registry', :git => 'https://github.com/ss/registry.git'
 
 === Test
 
@@ -37,7 +37,7 @@
 === Example usage
 
   in app/controllers/api_controller.rb
-    
+
     class ApiController < ActionController::Base
 
       before_filter :ensure_api_enabled, :check_rate_limit
@@ -80,15 +80,15 @@
 
     development:
       api_request_window: 100
-   
+
     test:
       api_request_window: 100
-   
+
     production:
       api_enabled:        false
       api_request_limit:  10
       api_request_window: 10000
-   
+
 
   in lib/tasks/my_tasks.rake
 
