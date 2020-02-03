@@ -11,8 +11,14 @@
 
 == Testing/Coverage
 
+  # setup test environment
+  rbenv install 1.9.3-p551
+  gem install bundler -v '~>1.0.0'
   bundle install --clean --path=vendor/bundle
-  bundle exec rake db:create db:migrate
+  bundle exec rake db:migrate
+
+  # run tests
+  bundle exec rake test
 
 === UI Access
 

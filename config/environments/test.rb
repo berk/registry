@@ -2,6 +2,7 @@
 
 require 'pp'
 
+require 'test/unit'
 require 'mocha/setup'
 
 # The test environment is used exclusively to run your application's
