@@ -5,10 +5,10 @@ Gem::Specification.new do |gem|
   gem.name          = "registry"
   gem.version       = IO.read('VERSION')
   gem.authors       = ["Michael Berkovich", "Scott Steadman"]
-  gem.email         = ["michael@geni.com"]
+  gem.email         = ["registry-gem@stdmn.com"]
   gem.description   = %q{Framework for controlling application behavior through configurable properties}
   gem.summary       = gem.description
-  gem.homepage      = "https://github.com/berk/registry"
+  gem.homepage      = "https://github.com/ss/registry"
   gem.license       = 'MIT'
 
   gem.add_development_dependency 'iconv'
