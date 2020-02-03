@@ -11,9 +11,10 @@ Gem::Specification.new do |gem|
   gem.homepage      = "https://github.com/berk/registry"
   gem.license       = 'MIT'
 
-  gem.add_development_dependency 'shoulda', '3.0.1'
+  gem.add_development_dependency 'iconv'
   gem.add_development_dependency 'mocha'
   gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'shoulda', '3.0.1'
   gem.add_development_dependency 'sqlite3'
 
   gem.add_dependency 'rails', '~> 2.3.0'

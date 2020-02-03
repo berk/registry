@@ -9,7 +9,12 @@
   # Gemfile
   gem 'registry', :git => 'https://github.com/ss/registry.git'
 
-=== Test
+== Testing/Coverage
+
+  bundle install --clean --path=vendor/bundle
+  bundle exec rake db:create db:migrate
+
+=== UI Access
 
   script/server
   point your browser at http://localhost:3000/registry
