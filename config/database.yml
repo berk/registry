@@ -11,17 +11,3 @@ test:
   database: db/test.sqlite3
   pool: 5
   timeout: 5000
-
-pg_development:
-  adapter: postgresql
-  host: localhost
-  encoding: utf8
-  username: postgres
-  database: sme_dev
-
-pg_test:
-  adapter: postgresql
-  host: localhost
-  encoding: utf8
-  username: postgres
-  database: sme_test
