@@ -22,7 +22,7 @@
 #
 
 require 'registry'
-require File.expand_path(File.dirname(__FILE__) + '/../../../vendor/gems/metaskills-acts_as_versioned-0.6.3/lib/acts_as_versioned')
+require 'acts_as_versioned'
 
 module Registry
   class Entry < ActiveRecord::Base
