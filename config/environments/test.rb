@@ -28,3 +28,12 @@ config.action_controller.allow_forgery_protection    = false
 config.action_mailer.delivery_method = :test
 
 config.action_controller.session = { :key => "_test_session", :secret => "218d878f47b437169e7de9975d2e1286" }
+
+if ENV['COVERAGE']
+  require 'simplecov'
+  FileUtils.rm_rf(Rails.root + 'public/coverage')
+  SimpleCov.start 'rails' do
+    add_filter  '/vendor/bundle/'
+    coverage_dir 'public/coverage'
+  end
+end

@@ -8,3 +8,4 @@ Gemfile.lock
 .bundle
 vendor/bundle
 config/registry.yml
+public/coverage

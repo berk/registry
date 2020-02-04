@@ -20,11 +20,9 @@
   # run tests
   bundle exec rake test
 
-=== UI Access
-
-  script/server
-  point your browser at http://localhost:3000/registry
-
+  # generate coverage report
+  bundle exec rake registry:coverage
+  # point your browser at http://localhost:3000/coverage/
 
 === Usage
 
