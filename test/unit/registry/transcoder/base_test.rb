@@ -24,6 +24,17 @@ module Registry
         assert_same self, Transcoder.from_db(self)
       end
 
+      test 'date_parsing different formats' do
+        date_string = '2007-01-16'
+        assert_equal Date.strptime(date_string, '%Y-%m-%d'), Transcoder.from_db(date_string)
+        date_string = '01-16-2007'
+        assert_equal Date.strptime(date_string, '%m-%d-%Y'), Transcoder.from_db(date_string)
+        date_string = '16-01-2007'
+        assert_equal Date.strptime(date_string, '%d-%m-%Y'), Transcoder.from_db(date_string)
+        date_string = '99-99-99'
+        assert_equal date_string, Transcoder.from_db(date_string)
+      end
+
       test 'from_db handles leading zeros in ranges' do
         assert_equal 0 .. 9, Transcoder.from_db('00 .. 09'), 'leading zero range transcoding failed'
       end
