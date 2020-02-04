@@ -7,3 +7,4 @@ db/schema.rb*
 Gemfile.lock
 .bundle
 vendor/bundle
+config/registry.yml
