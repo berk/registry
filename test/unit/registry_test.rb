@@ -1,4 +1,4 @@
-require 'test/test_helper'
+require 'test_helper'
 
 class RegistryTest < ActiveSupport::TestCase
 
@@ -85,6 +85,7 @@ class RegistryTest < ActiveSupport::TestCase
     end
 
     expected = {
+      '_last_updated_at' => '__any__',
       'unchanged' => {
         'string' => 'default',
       },
@@ -96,7 +97,7 @@ class RegistryTest < ActiveSupport::TestCase
         'string' => 'new',
       },
     }
-    assert_equal expected, Registry.to_hash
+    assert_hash expected, Registry.to_hash
   end
 
   test 'import with purge' do
@@ -219,6 +220,21 @@ class RegistryTest < ActiveSupport::TestCase
   test 'wrapper decodes string values' do
     wrapper = Registry::RegistryWrapper.new(:one => '1')
     assert_equal 1, wrapper.one
+  end
+
+  test '_last_updated_at' do
+    assert_equal Time.at(0), Registry._last_updated_at
+
+    reg = {
+      'api' => {
+        :enabled => true,
+        'limit'  => 1,
+      },
+    }
+    Registry::Entry.root.merge(reg)
+    Registry.reset
+
+    assert_not_equal Time.at(0), Registry._last_updated_at
   end
 
 private

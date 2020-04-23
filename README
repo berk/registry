@@ -6,14 +6,23 @@
 
 === Installation
 
-  script/plugin install git://github.com/berk/registry.git
+  # Gemfile
+  gem 'registry', :git => 'https://github.com/ss/registry.git'
 
+== Testing/Coverage
 
-=== Test
+  # setup test environment
+  rbenv install 1.9.3-p551
+  gem install bundler -v '~>1.0.0'
+  bundle install --clean --path=vendor/bundle
+  bundle exec rake db:migrate
 
-  script/server
-  point your browser at http://localhost:3000/registry
+  # run tests
+  bundle exec rake test
 
+  # generate coverage report
+  bundle exec rake registry:coverage
+  # point your browser at http://localhost:3000/coverage/
 
 === Usage
 
@@ -37,7 +46,7 @@
 === Example usage
 
   in app/controllers/api_controller.rb
-    
+
     class ApiController < ActionController::Base
 
       before_filter :ensure_api_enabled, :check_rate_limit
@@ -80,15 +89,15 @@
 
     development:
       api_request_window: 100
-   
+
     test:
       api_request_window: 100
-   
+
     production:
       api_enabled:        false
       api_request_limit:  10
       api_request_window: 10000
-   
+
 
   in lib/tasks/my_tasks.rake
 

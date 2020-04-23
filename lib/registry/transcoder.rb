@@ -34,7 +34,13 @@ Registry.configure do |config|
   # Date transcoder
   config.add_transcoder do
     to_db   {|value|  value.strftime("%Y-%m-%d")}
-    from_db {|string| Date.parse(string)}
+    from_db do |string|
+      result   = Date.strptime(string, '%d-%m-%Y') rescue nil
+      result ||= Date.strptime(string, '%Y-%m-%d') rescue nil
+      result ||= Date.strptime(string, '%m-%d-%Y') rescue nil
+
+      result || string
+    end
 
     matches do |value|
       value.is_a?(Date) or              # to_db
