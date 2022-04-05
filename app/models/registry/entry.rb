@@ -85,7 +85,12 @@ module Registry
     # ==== Parameters
     #
     # * +file_path+ - Path to yml file.
-    # * +opts+      - Optional, merge options (see documentation for <tt>merge</tt> method)
+    # * +opts+      - Optional parameters
+    #
+    # ==== Options
+    #
+    # * <tt>verbose</tt> - If true, print information to stderr.
+    # * merge options (see documentation for <tt>merge</tt> method)
     #
     # ==== File Format
     #
@@ -113,6 +118,7 @@ module Registry
       hash = YAML.load_file(file_path)
       default_entries = hash.delete(Registry::DEFAULTS_KEY) || {}
       hash.each do |env, entries|
+        STDERR.puts "Importing: #{env}" if opts[:verbose]
         root(env).merge(default_entries.deep_merge(entries), opts)
       end
     end

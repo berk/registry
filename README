@@ -103,7 +103,7 @@
 
     desc 'Import configuration'
     task :import_configuration => [:environment] do
-      Registry.import("#{Rails.root}/config/registry.yml")
+      Registry.import("#{Rails.root}/config/registry.yml", :verbose => true)
     end
 
   ---
