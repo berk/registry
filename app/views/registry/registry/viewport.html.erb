@@ -10,16 +10,16 @@
 </head>
 
 <body>
-    <script type="text/javascript">
+  <%= javascript_tag %{
 
     Ext.onReady(function(){
-       Ext.QuickTips.init();
-        <%=render :partial => "grid" %>
-        <%=render :partial => "tree" %>
-        <%=render :partial => "info_panel" %>
-        <%=render :partial => "folder_form" %>
-        <%=render :partial => "property_form" %>
-        <%=render :partial => 'revisions' %>
+        Ext.QuickTips.init();
+        #{render :partial => "grid"}
+        #{render :partial => "tree"}
+        #{render :partial => "info_panel"}
+        #{render :partial => "folder_form"}
+        #{render :partial => "property_form"}
+        #{render :partial => 'revisions'}
        
         var viewport = new Ext.Viewport({
             layout: 'border',
@@ -49,9 +49,8 @@
                 }]
               })]
         });
-
     });
-    </script>
+  } %>
     
 </body>
 </html>
