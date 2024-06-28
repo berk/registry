@@ -10,7 +10,7 @@
 </head>
 
 <body>
-    <script type="text/javascript">
+    <%= javascript_tag %{
 
     Ext.onReady(function(){
        Ext.QuickTips.init();
@@ -51,7 +51,6 @@
         });
 
     });
-    </script>
-    
+  } %>
 </body>
 </html>
